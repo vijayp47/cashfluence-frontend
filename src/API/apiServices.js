@@ -9,30 +9,57 @@ const BASE_URL = process.env.REACT_APP_BASE_URL;
   };
   
 // Function to handle POST requests
+// export const postApi = async (endpoint, data) => {
+//   const token = getAuthToken() || endpoint.split('/').pop();
+
+//   const fullUrl = `${BASE_URL}${endpoint}`; 
+//   try {
+//     const response = await fetch(fullUrl, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: token ? `Bearer ${token}` : undefined, // Include only if present
+//       },
+//       body: JSON.stringify(data),
+//     });
+
+//     const result = await response.json();
+
+//     if (!response.ok) {
+//       throw new Error(result.message || 'Something went wrong');
+//     }
+//     return result;
+//   } catch (error) {
+//     throw new Error(error.message || 'Server error');
+//   }
+// };
+
 export const postApi = async (endpoint, data) => {
   const token = getAuthToken() || endpoint.split('/').pop();
 
-  const fullUrl = `${BASE_URL}${endpoint}`; 
+  const fullUrl = `${BASE_URL}${endpoint}`;
   try {
     const response = await fetch(fullUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: token ? `Bearer ${token}` : undefined, // Include only if present
+        Authorization: token ? `Bearer ${token}` : undefined, // Include token if available
       },
       body: JSON.stringify(data),
+      credentials: "include", // Include credentials such as cookies in requests
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.message || 'Something went wrong');
+      throw new Error(result.message || "Something went wrong");
     }
     return result;
   } catch (error) {
-    throw new Error(error.message || 'Server error');
+    throw new Error(error.message || "Server error");
   }
 };
+
 
 
 export const adminpostApi = async (endpoint, data) => {
