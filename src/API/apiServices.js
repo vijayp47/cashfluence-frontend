@@ -20,6 +20,7 @@ export const postApi = async (endpoint, data) => {
         "Content-Type": "application/json",
         Authorization: token ? `Bearer ${token}` : undefined, // Include only if present
       },
+      credentials: "include",
       body: JSON.stringify(data),
     });
 
