@@ -200,6 +200,7 @@ export const sendMessage = async (message) => {
 
 
 
+
 export const getPlatFormNameAndId = async () => {
   const token = getAuthToken();
   const userId = localStorage.getItem("userId");
@@ -297,9 +298,8 @@ export const getDataFromDatabase = async ({ userId }) => {
     const response = await axios.get(`${BASE_URL}/phyllo/fetchDataFromdatabase`, {
       params: {
         userId: userId,
-    
-       
-      },   headers: {
+      },
+      headers: {
         'Authorization': `Bearer ${token}` // Add token to the request headers
       },
      
@@ -373,7 +373,7 @@ export const updateStatusAdmin = async ({ loanId, status,adminName ,userEmail,tr
   }
 
   try {
-    const response = await axios.patch(
+    const response = await axios.post(
       `${BASE_URL}/loans/${loanId}`,
       { status,adminName ,userEmail,transactionId,userName,loanAmount,approvalDate,loanId }, // Directly send the status in the request body
       {
@@ -691,22 +691,22 @@ export const updatePassword = async ({ currentPassword, newPassword , confirmPas
  };
 
  export const fetchStateAnnualPercentageRate = async (loanAmount, repaymentTerm, state) => {
-   const url = `${BASE_URL}/phyllo/fetchStateAnnualPercentageRate?state=${state}&loan_term=${repaymentTerm}&loan_amount=${loanAmount}`;
-   const token = getAuthToken();
-   try {
-     const response = await axios.get(url, {
-       headers: {
-         "Content-Type": "application/json",
-         Authorization: `Bearer ${token}`, // Include the token in the header
-       },
-     });
-   
-     const data = response.data;  // The API's response data
-     
-     return data; 
-   } catch (error) {
-     console.error("Error fetching data:", error);
-     throw error;
-   }
- };
+  const url = `${BASE_URL}/phyllo/fetchStateAnnualPercentageRate?state=${state}&loan_term=${repaymentTerm}&loan_amount=${loanAmount}`;
+  const token = getAuthToken();
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Include the token in the header
+      },
+    });
+  
+    const data = response.data;  // The API's response data
+    return data; 
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
+};
+
  

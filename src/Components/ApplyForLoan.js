@@ -4,7 +4,6 @@ import { BiLogOutCircle } from "react-icons/bi";
 import { FaUser } from "react-icons/fa";
 import { useLocation } from "react-router-dom";
 import useRiskStore from "./store/useRiskStore";
-
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
@@ -34,7 +33,6 @@ const ApplyForLoan = () => {
     useState(null);
   const averageRiskLevel = localStorage.getItem("averageRiskLevel");
   const riskScore = localStorage.getItem("averageRiskScore");
-  const state = "Colorado";
 
   const [errors, setErrors] = useState({
     loanAmount: '',
@@ -42,7 +40,59 @@ const ApplyForLoan = () => {
     fromAccount: '',
     toAccount: '',
   });
-  
+  const [state, setState] = useState(null);
+ 
+
+// Function to fetch plaid state data
+const plaidStateData = async () => {
+  const userId = localStorage.getItem("user_id");
+
+  // Check if user_id exists
+  if (!userId) {
+    console.error("User ID not found in localStorage");
+    toast.error("User ID not found");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("userToken");
+   
+    const response = await fetch(`${BASE_URL}/plaid/plaid_user_state`, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const data = await response.json();
+    console.log('State data response:', data);
+
+    if (data.state) {
+      setState(data.state); // Store the state in the component's state
+    } else {
+      // If the backend message is available, show that in the toast
+      console.error(data.message || "State data not found");
+      toast.error(data.message || "State data not found");
+    }
+  } catch (error) {
+    console.error('Error fetching state data:', error);
+    toast.error('Error fetching state data');
+  } finally {
+    setLoading(false);
+  }
+};
+
+  useEffect(() => {
+    plaidStateData();
+  }, []); 
+
   const userId = localStorage.getItem("userId");
   useEffect(() => {
     const userId = localStorage.getItem("userId");
@@ -51,17 +101,20 @@ const ApplyForLoan = () => {
     }
   }, [userId, fetchInfluencerProfile]); 
 
+
   useEffect(() => {
     if (!accountData) {
       fetchAccountData();
     }
   }, [accountData, fetchAccountData]);
 
+
   useEffect(() => {
     if (!profileData) {
       fetchProfileData(); 
     }
   }, [profileData, fetchProfileData]);
+
 
   useEffect(() => {
     const fetchAPR = async () => {
@@ -71,6 +124,7 @@ const ApplyForLoan = () => {
           repaymentTerm,
           state
         );
+        console.log("data....",data?.value)
         setFetchedAPR(data?.value); 
   
         if (data?.value !== null && data?.value !== undefined) {

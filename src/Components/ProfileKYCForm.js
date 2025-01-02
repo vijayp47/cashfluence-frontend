@@ -142,8 +142,8 @@ const ProfileKYCForm = () => {
         }),
       });
   
-      console.log(response)
       const data = await response.json();
+      console.log(data?.data)
       setUserIdvStatus(data?.data?.plaid_idv_status)
     } catch (error) {
       console.error("Error retrying identity verification:", error);
@@ -184,14 +184,12 @@ const ProfileKYCForm = () => {
       }
 
       const data = await response.json();
+        retryIdentityVerification()
       // toast.success("Identity verification completed successfully!");
       // if(data.message == "User already verified."){
       // setUserIdvStatus("success")
       // }
       
-      setKycStatus(data.kycStatus ?? "Pending");
-      setAntiFraudStatus(data.antiFraudStatus ?? "Pending");
-      setRegulatoryStatus(data.regulatoryStatus ?? "Pending");
     } catch (error) {
       console.error("Error completing IDV:", error.message || error);
       // toast.error(error.message || "Failed to complete Identity Verification.");
@@ -229,71 +227,70 @@ const ProfileKYCForm = () => {
   return (
     <>
      <div className="flex justify-center min-h-screen">
-  <div className="bg-white shadow-md rounded-lg w-full max-w-md h-full min-h-screen flex flex-col">
-    {/* Header */}
-    <div>
-      <div className="font-sans flex items-center border-b bg-[#0000]">
-        <button
-          onClick={() => navigate(-1)}
-          className="mr-4 text-[#383838] m-4"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
-        </button>
-        <h1 className="font-sans text-[18px] font-extrabold text-[#383838]">
-          Kyc Profile
-        </h1>
-        <div className="ml-auto relative group mr-5">
-          <button
-            className="flex items-left"
-            onClick={() => navigate("/profile")}
-          >
-            {profileData?.image ? (
-              <img
-                src={profileData?.image}
-                alt="Profile"
-                className="w-8 h-8 rounded-full bg-[#000000]"
-              />
-            ) : (
-              <FaUser size={25} className="text-[#383838]" />
-            )}
-          </button>
-          <span className="font-sans absolute top-[30px] right-0 w-max px-2 py-1 text-xs text-white bg-gray-600 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-            Profile
-          </span>
+      <div className="bg-white shadow-md rounded-lg w-full max-w-md h-full min-h-screen flex flex-col">
+        {/* Header */}
+        <div>
+          <div className="font-sans flex items-center border-b bg-[#0000]">
+            <button
+              onClick={() => navigate(-1)}
+              className="mr-4 text-[#383838] m-4"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+            </button>
+            <h1 className="font-sans text-[18px] font-extrabold text-[#383838]">
+              Kyc Profile
+            </h1>
+            <div className="ml-auto relative group mr-5">
+              <button
+                className="flex items-left"
+                onClick={() => navigate("/profile")}
+              >
+                {profileData?.image ? (
+                  <img
+                    src={profileData?.image}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full bg-[#000000]"
+                  />
+                ) : (
+                  <FaUser size={25} className="text-[#383838]" />
+                )}
+              </button>
+              <span className="font-sans absolute top-[30px] right-0 w-max px-2 py-1 text-xs text-white bg-gray-600 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                Profile
+              </span>
+            </div>
+          </div>
+        </div>
+        {/* Button Section */}
+        <div className="flex flex-col justify-center items-center flex-grow">
+          {loading ? (
+            <Loader />
+          ) : (
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
+              onClick={startLinkIDV}
+              disabled={!linkToken || loading} // || userIdvStatus === "success" disable when user status is success
+            >
+            {["failed", "incomplete", "active", "success"].includes(userIdvStatus)
+              ? "Restart Identity Verification"
+              : "Start Identity Verification"}
+            </button>
+          )}
         </div>
       </div>
-    </div>
-    {/* Button Section */}
-    <div className="flex flex-col justify-center items-center flex-grow">
-      {loading ? (
-        <Loader />
-      ) : (
-        <button
-          className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
-          onClick={startLinkIDV}
-          disabled={!linkToken || loading} // || userIdvStatus === "success" disable when user status is success
-        >
-         {["failed", "incomplete", "active", "success"].includes(userIdvStatus)
-  ? "Restart Identity Verification"
-  : "Start Identity Verification"}
-
-        </button>
-      )}
-    </div>
-  </div>
 </div>
 
       <ToastContainer position="top-center" autoClose={2000} />
