@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { FaUserCircle } from "react-icons/fa"; // Example icon for placeholder
-// import emptyImage from "../../assets/images/no-camera.png"
+import emptyImage from "../../assets/images/no-camera.png"
 
-const emptyImage = "https://res.cloudinary.com/drgheojrx/image/upload/v1717502336/Image_39_vgpsxk.png"
 const ComplianceChecklist = ({data}) => {
   const [selectedSection, setSelectedSection] = useState(null);
   const [modalData, setModalData] = useState(null);
@@ -140,7 +139,7 @@ const renderKYCDetails = (modalData) => {
               <div className="flex flex-col items-center hover:scale-105 transition-transform">
                 <img
                 //   src={doc.images.original_front}
-                src={doc.images.original_front}
+                src={emptyImage}
                   alt="Document Front"
                   className="rounded-lg shadow-lg border border-gray-200"
                 />
@@ -148,7 +147,7 @@ const renderKYCDetails = (modalData) => {
               </div>
               <div className="flex flex-col items-center hover:scale-105 transition-transform">
                 <img
-                 src={doc.images.original_back}
+                 src={emptyImage}
                 //   src={doc.images.original_back}
                   alt="Document Back"
                   className="rounded-lg shadow-lg border border-gray-200"
