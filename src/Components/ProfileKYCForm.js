@@ -111,10 +111,11 @@ const ProfileKYCForm = () => {
       });
   
       const data = await response.json();
-      setUserIdvStatus(data.plaid_idv_status)
-      console.log("Retry Response:", data);
+      console.log("status......",data.status)
+      setUserIdvStatus(data.data.status)
   
       if (data?.message === "Identity verification retry initiated successfully") {
+        setUserIdvStatus(data?.data.status)
         console.log("Retry successful:", data);
         return data; // Return the response for further use
       } else {
