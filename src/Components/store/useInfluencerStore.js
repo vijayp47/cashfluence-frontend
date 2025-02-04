@@ -54,14 +54,22 @@ const useInfluencerStore = create((set) => ({
 
 // Calculate Engagement Rate
 const calculateEngagementRate = (data) => {
-  if (data && data.follower_count) {
-    const totalEngagements = (data.average_like_count || 0) + 
-                             (data.average_comment_count || 0) + 
-                             (data.average_share_count || 0); 
-    return (totalEngagements / data.follower_count) * 100; // As a percentage
+  if (data && data?.subscriber_count !== null ?  data?.subscriber_count : data?.follower_count) {
+    const totalEngagements =
+      (data?.average_like_count || 0) +
+      (data?.average_comment_count || 0) +
+      (data?.average_share_count || 0);
+    const count = data?.subscriber_count !== null ?  data?.subscriber_count : data?.follower_count;
+  
+
+    // If there's no count, return 0
+    if (!count) return 0;
+
+    return (totalEngagements / count) * 100; // Return engagement as a percentage
   }
   return 0; // Return 0 if no data
 };
+
 
 // Calculate Income Consistency based on payout interval
 const calculateIncomeConsistency = (incomePayoutInterval) => {
@@ -146,3 +154,4 @@ const calculateInfluencerScore = (data) => {
 };
 
 export default useInfluencerStore;
+

@@ -20,7 +20,6 @@ export const postApi = async (endpoint, data) => {
         "Content-Type": "application/json",
         Authorization: token ? `Bearer ${token}` : undefined, // Include only if present
       },
-      credentials: "include",
       body: JSON.stringify(data),
     });
 
@@ -34,6 +33,7 @@ export const postApi = async (endpoint, data) => {
     throw new Error(error.message || 'Server error');
   }
 };
+
 
 export const adminpostApi = async (endpoint, data) => {
   const token = localStorage.getItem("adminToken"); // JWT token (if needed)
@@ -85,6 +85,7 @@ export const getApi = async (endpoint) => {
 
 export const createPhylloUser = async () => {
   let userId = localStorage.getItem("userId");
+  let login_id = localStorage.getItem("user_id");
   const token = getAuthToken();
   if (!userId) {
     // Option 2: Generate a fallback userId if not present in localStorage
@@ -98,7 +99,8 @@ export const createPhylloUser = async () => {
 
     // Make the API request
     const response = await axios.post(`${BASE_URL}/phyllo/create-user`, {
-      external_id: external_id // Send external_id as part of the request body
+      external_id: external_id, // Send external_id as part of the request body
+      login_id:login_id
     }, {
       headers: {
         'Authorization': `Bearer ${token}` // Add token to the request headers
@@ -194,8 +196,6 @@ export const sendMessage = async (message) => {
     throw error; // Throw error to be handled in the component
   }
 };
-
-
 
 
 
@@ -298,8 +298,9 @@ export const getDataFromDatabase = async ({ userId }) => {
     const response = await axios.get(`${BASE_URL}/phyllo/fetchDataFromdatabase`, {
       params: {
         userId: userId,
-      },
-      headers: {
+    
+       
+      },   headers: {
         'Authorization': `Bearer ${token}` // Add token to the request headers
       },
      
@@ -311,6 +312,34 @@ export const getDataFromDatabase = async ({ userId }) => {
     throw error;
   }
 };
+
+
+export const getDataFromDatabaseAdmin = async ({ userId }) => {
+  const token = localStorage.getItem("adminToken");
+  if (!userId) {
+    throw new Error("User ID not found in local storage.");
+  }
+
+  try {
+    const response = await axios.get(`${BASE_URL}/phyllo/fetchDataFromdatabaseadmin`, {
+      params: {
+        userId: userId,
+    
+       
+      },   headers: {
+        'Authorization': `Bearer ${token}` // Add token to the request headers
+      },
+     
+    });
+
+    return response?.data; // Return the full response for flexibility
+  } catch (error) {
+    console.error("Error fetching social accounts:", error);
+    throw error;
+  }
+};
+
+
 
 
 export const deletePlatformDataFromDatabase = async ({ userId, platformName }) => {
@@ -691,22 +720,22 @@ export const updatePassword = async ({ currentPassword, newPassword , confirmPas
  };
 
  export const fetchStateAnnualPercentageRate = async (loanAmount, repaymentTerm, state) => {
-  const url = `${BASE_URL}/phyllo/fetchStateAnnualPercentageRate?state=${state}&loan_term=${repaymentTerm}&loan_amount=${loanAmount}`;
-  const token = getAuthToken();
-  try {
-    const response = await axios.get(url, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // Include the token in the header
-      },
-    });
-  
-    const data = response.data;  // The API's response data
-    return data; 
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    throw error;
-  }
-};
-
+   const url = `${BASE_URL}/phyllo/fetchStateAnnualPercentageRate?state=${state}&loan_term=${repaymentTerm}&loan_amount=${loanAmount}`;
+   const token = getAuthToken();
+   try {
+     const response = await axios.get(url, {
+       headers: {
+         "Content-Type": "application/json",
+         Authorization: `Bearer ${token}`, // Include the token in the header
+       },
+     });
+   
+     const data = response.data;  // The API's response data
+     
+     return data; 
+   } catch (error) {
+     console.error("Error fetching data:", error);
+     throw error;
+   }
+ };
  

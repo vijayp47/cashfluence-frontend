@@ -29,11 +29,12 @@ const ApplyForLoan = () => {
   const [selectedInstitutionTo, setSelectedInstitutionTo] = useState(null);
   const [selectedToAccount, setSelectedToAccount] = useState(null);
   const {accountData, setAccountData,fetchAccountData} = useAccountStore();
+  const [err,setErr]=useState(false);
   const [stateLawAndLoanTermWeight, setStateLawAndLoanTermWeight] =
     useState(null);
   const averageRiskLevel = localStorage.getItem("averageRiskLevel");
   const riskScore = localStorage.getItem("averageRiskScore");
-
+ 
   const [errors, setErrors] = useState({
     loanAmount: '',
     repaymentTerm: '',
@@ -42,6 +43,7 @@ const ApplyForLoan = () => {
   });
   const [state, setState] = useState(null);
  
+  console.log("averageRiskLevel",averageRiskLevel)
 
 // Function to fetch plaid state data
 const plaidStateData = async () => {
@@ -75,11 +77,13 @@ const plaidStateData = async () => {
     console.log('State data response:', data);
 
     if (data.state) {
+      setErr(false);
       setState(data.state); // Store the state in the component's state
     } else {
       // If the backend message is available, show that in the toast
       console.error(data.message || "State data not found");
       toast.error(data.message || "State data not found");
+      setErr(true);
     }
   } catch (error) {
     console.error('Error fetching state data:', error);
@@ -88,7 +92,6 @@ const plaidStateData = async () => {
     setLoading(false);
   }
 };
-
   useEffect(() => {
     plaidStateData();
   }, []); 
@@ -101,20 +104,17 @@ const plaidStateData = async () => {
     }
   }, [userId, fetchInfluencerProfile]); 
 
-
   useEffect(() => {
     if (!accountData) {
       fetchAccountData();
     }
   }, [accountData, fetchAccountData]);
 
-
   useEffect(() => {
     if (!profileData) {
       fetchProfileData(); 
     }
   }, [profileData, fetchProfileData]);
-
 
   useEffect(() => {
     const fetchAPR = async () => {
@@ -124,7 +124,6 @@ const plaidStateData = async () => {
           repaymentTerm,
           state
         );
-        console.log("data....",data?.value)
         setFetchedAPR(data?.value); 
   
         if (data?.value !== null && data?.value !== undefined) {
@@ -198,9 +197,6 @@ const plaidStateData = async () => {
     return Object.keys(newErrors).length === 0;
   };
   
-
-
-
   const calculateRate = ({
     paymentHistory,
     influencerScore,
@@ -604,7 +600,11 @@ const plaidStateData = async () => {
         <div className="p-4">
           <button
             onClick={handleSubmit}
-            className="w-full font-sans bg-[#5EB66E] text-[#ffff] py-3 text-[16px] font-semibold rounded-md hover:bg-[#469F5E] focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
+            className={`w-full font-sans bg-[#5EB66E] text-[#ffff] py-3 text-[16px] font-semibold rounded-md hover:bg-[#469F5E] focus:outline-none focus:ring-2 focus:ring-[#5EB66E] ${
+              err || averageRiskLevel === null 
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed" // Disabled state
+              : "bg-[#5EB66E] text-white" // Enabled state
+              }`}
           >
             Apply for Loan
           </button>
@@ -617,3 +617,4 @@ const plaidStateData = async () => {
 };
 
 export default ApplyForLoan;
+

@@ -4,6 +4,8 @@ import { useLocation,useNavigate } from "react-router-dom";
 import UsersLoanDetail from "./UsersLoanDetail";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import ComplianceChecklist from "./ComplianceChecklist";
+import InterestRateData from "./InterestRateData";
+import FinancialDataDisplay from "./FInancialDataDisplay";
 import Loader from "../Loader";
 const UsersLoanList = () => {
   const BASE_URL = process.env.REACT_APP_BASE_URL;  
@@ -24,6 +26,7 @@ const UsersLoanList = () => {
   const loanData = userData?.loans || []
 
   const userId = userData.id
+
 
   // for changing instantly we have to call these api
   const fetchUserData = async () => {
@@ -58,7 +61,7 @@ const UsersLoanList = () => {
     try {
       const token = localStorage.getItem('adminToken');
       console.log("Token:", token);
-       setLoader(true);
+  setLoader(true);
       const response = await fetch(`${BASE_URL}/plaid/get-plaid-user`, {
         method: 'POST',
         headers: {
@@ -277,6 +280,8 @@ console.log("plaidUserloan",plaidUser);
           </div>):null} */}
 
           {!showLoanDetails ? (
+            <>
+          
           <div className="font-sans grid grid-cols-1 lg:grid-cols-2 gap-6 mt-3">
             {/* Borrower's Profile */}
             <div className="font-sans bg-white p-5 rounded-lg shadow border text-left border-[#C4C4C4]">
@@ -311,10 +316,15 @@ console.log("plaidUserloan",plaidUser);
                 <span className="font-sans font-semibold text-[18px] text-[#383838]">
                   {plaidUser?.data?.plaid_idv_status}
                 </span>
+              
               </div>
+
+              
+
+           
             </div>
           </div>
-
+        
             {/* Compliance Checklist */}
             <div className="bg-white p-5 rounded-lg shadow border border-[#C4C4C4]">
               <h2 className="text-[24px] font-sans text-[#383838] font-extrabold mb-4 text-left">
@@ -322,13 +332,18 @@ console.log("plaidUserloan",plaidUser);
               </h2>
               {!loader ?  <ComplianceChecklist data={plaidUser}/> : null}
              
-            </div>
+            </div>   
           </div>
+          
+          
+          
+          </>
           ):null}
 
           {/* Repayment History */}
           {!showLoanDetails ? (
-          <div className="mt-6 bg-white p-5 rounded-lg w-full md:w-[65%] shadow border border-[#C4C4C4]">
+          <div className="font-sans grid grid-cols-1 lg:grid-cols-2 gap-6 mt-3">
+              <div className=" bg-white p-5 rounded-lg  shadow border border-[#C4C4C4]">
           <h2 className="font-sans text-[24px] text-[#383838] font-extrabold mb-4 text-left">
             Loan Records <h2 className="text-[14px] font-sans text-[#383838] font-semibold mb-4 text-left">(The status is static because we do not have data on whether the loan is complete or not)</h2>
           </h2>
@@ -430,6 +445,21 @@ console.log("plaidUserloan",plaidUser);
               No loans available
             </div>
           )}
+              </div>
+              <div className="bg-white p-5 rounded-lg shadow border border-[#C4C4C4]">
+              <h2 className="text-[24px] font-sans text-[#383838] font-extrabold mb-4 text-left">
+                Influencer Data 
+              </h2>
+              {!loader ?  <InterestRateData userId={userId}/> : null}
+             
+            </div>
+            <div className="bg-white p-5 rounded-lg shadow border border-[#C4C4C4]">
+              <h2 className="text-[24px] font-sans text-[#383838] font-extrabold mb-4 text-left">
+                Financial Data 
+              </h2>
+              {!loader ?  <FinancialDataDisplay userId={userId}/> : null}
+             
+            </div>
         </div>
         
           
