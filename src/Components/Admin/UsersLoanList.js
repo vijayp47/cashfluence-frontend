@@ -453,13 +453,13 @@ console.log("plaidUserloan",plaidUser);
               {!loader ?  <InterestRateData userId={userId}/> : null}
              
             </div>
-            <div className="bg-white p-5 rounded-lg shadow border border-[#C4C4C4]">
+            {/* <div className="bg-white p-5 rounded-lg shadow border border-[#C4C4C4]">
               <h2 className="text-[24px] font-sans text-[#383838] font-extrabold mb-4 text-left">
                 Financial Data 
               </h2>
               {!loader ?  <FinancialDataDisplay userId={userId}/> : null}
              
-            </div>
+            </div> */}
         </div>
         
           
