@@ -5,7 +5,6 @@ import UsersLoanDetail from "./UsersLoanDetail";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import ComplianceChecklist from "./ComplianceChecklist";
 import InterestRateData from "./InterestRateData";
-import FinancialDataDisplay from "./FInancialDataDisplay";
 import Loader from "../Loader";
 const UsersLoanList = () => {
   const BASE_URL = process.env.REACT_APP_BASE_URL;  
@@ -23,7 +22,10 @@ const UsersLoanList = () => {
   const navigate = useNavigate();
   // const loanData = user?.loans || []
 
-  const loanData = userData?.loans || []
+  const loanData = userData?.loans || [];
+
+  console.log("loanData------------",loanData);
+  
 
   const userId = userData.id
 
@@ -93,8 +95,6 @@ const UsersLoanList = () => {
     }
   };
   
-
-console.log("plaidUserloan",plaidUser);
 
   const handleLoanStatusUpdate = (loanId, newStatus) => {
     const updatedLoans = filteredLoans.map((loan) =>
@@ -345,7 +345,7 @@ console.log("plaidUserloan",plaidUser);
           <div className="font-sans grid grid-cols-1 lg:grid-cols-2 gap-6 mt-3">
               <div className=" bg-white p-5 rounded-lg  shadow border border-[#C4C4C4]">
           <h2 className="font-sans text-[24px] text-[#383838] font-extrabold mb-4 text-left">
-            Loan Records <h2 className="text-[14px] font-sans text-[#383838] font-semibold mb-4 text-left">(The status is static because we do not have data on whether the loan is complete or not)</h2>
+            Loan Records 
           </h2>
         
           {loanData.length > 0 ? (
@@ -388,10 +388,15 @@ console.log("plaidUserloan",plaidUser);
                           : loan.repaymentTerm / 30 + " months"}
                       </td>
                       <td className="font-sans py-2 text-[#373D46] font-semibold text-[18px] text-right">
-                        <span className="font-sans border-2 border-[#242424] font-bold text-[16px] text-[#242424] py-1 px-4 rounded-lg">
-                          {loan.statuss || "Ongoing"}
-                        </span>
-                      </td>
+  <span
+    className={`font-sans border-2 font-bold text-[16px] py-1 px-4 rounded-lg ${
+      loan.isLoanComplete ? "bg-green-500 text-white border-green-500" : "bg-orange-400 text-white border-orange-400"
+    }`}
+  >
+    {loan.isLoanComplete ? "Completed" : "Ongoing"}
+  </span>
+</td>
+
                     </tr>
                   ))}
                 </tbody>
@@ -453,13 +458,6 @@ console.log("plaidUserloan",plaidUser);
               {!loader ?  <InterestRateData userId={userId}/> : null}
              
             </div>
-            {/* <div className="bg-white p-5 rounded-lg shadow border border-[#C4C4C4]">
-              <h2 className="text-[24px] font-sans text-[#383838] font-extrabold mb-4 text-left">
-                Financial Data 
-              </h2>
-              {!loader ?  <FinancialDataDisplay userId={userId}/> : null}
-             
-            </div> */}
         </div>
         
           

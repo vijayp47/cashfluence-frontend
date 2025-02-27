@@ -22,6 +22,15 @@ const UserScoreDataDisplay = ({userId}) => {
 
       console.log("profileData",profileData);
       
+      const socialAccounts = [
+        profileData?.youtube_data && "YouTube",
+        profileData?.tiktok_data && "TikTok",
+        profileData?.instagram_data && "Instagram",
+      ].filter(Boolean);
+      
+      // Fallback order: Instagram > TikTok > YouTube
+      let activeTab = null;
+      
       if (profileData) {
         if (profileData?.instagram_data) {
           setActiveTab("Instagram");
@@ -31,6 +40,8 @@ const UserScoreDataDisplay = ({userId}) => {
           setActiveTab("YouTube");
         }
       }
+      
+    
       const calculatedScore = calculateInfluencerScore(profileData);
       setScore(calculatedScore.toFixed(2));
     } catch (error) {
@@ -41,7 +52,6 @@ const UserScoreDataDisplay = ({userId}) => {
   };
 
   const calculateEngagementRate = (data) => {
-    console.log("data------------", data?.follower_count);
 
     if (data && data?.subscriber_count !== null ?  data?.subscriber_count : data?.follower_count) {
       const totalEngagements =
@@ -49,8 +59,6 @@ const UserScoreDataDisplay = ({userId}) => {
         (data?.average_comment_count || 0) +
         (data?.average_share_count || 0);
       const count = data?.subscriber_count !== null ?  data?.subscriber_count : data?.follower_count;
-      console.log("count---u tube ", count);
-console.log("totalEngagements",totalEngagements);
 
       // If there's no count, return 0
       if (!count) return 0;
@@ -86,7 +94,6 @@ console.log("totalEngagements",totalEngagements);
 
   if (isLoading) return <div className="text-center py-4">Loading...</div>;
   if ((!influencerProfile?.instagram_data) && (!influencerProfile?.youtube_data) && (!influencerProfile?.tiktok_data))
-  // if (!influencerProfile)
     return <div className="text-center py-4">No data available</div>;
 
   const socialAccounts = [

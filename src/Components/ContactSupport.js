@@ -82,7 +82,7 @@ const ContactSupport = () => {
               <h1 className="font-sans text-[18px] font-extrabold text-[#383838]">
                 Contact Support
               </h1>
-              <div className="ml-auto relative group mr-5 mr-4">
+              <div className="ml-auto relative group mr-5 ">
                 <button
                   className="flex items-left"
                   onClick={() => navigate("/profile")}

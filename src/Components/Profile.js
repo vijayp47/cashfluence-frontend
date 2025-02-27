@@ -15,6 +15,8 @@ import contact from "../assets/images/Vector (6).png";
 import logout from "../assets/images/Vector (7).png";
 import arrow from "../assets/images/Vector (8).png";
 import plusProfile from "../assets/images/plusProfile.png";
+import useAccountStore from './store/useAccountStore';
+
 import { updateUserPassword, updateUserProfile,getUserProfile } from "../API/apiServices";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5"; // Import eye icons
 import {
@@ -28,6 +30,7 @@ import useStore from "./store/userProfileStore";
 
 const Profile = ({setIsAuthenticated}) => {
   const navigate = useNavigate();
+  const { accountData, setAccountData} = useAccountStore();
   const { profileData, setProfileData } = useStore();
   const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
   const [userProfileEditopen, setuserProfileEditOpen] = useState(false);
@@ -42,6 +45,7 @@ const Profile = ({setIsAuthenticated}) => {
   const [uploadedFileName, setUploadedFileName] = useState(""); // change
   const [otp, setOtp] = useState(""); // change
   const [apicall, setApiCall] = useState(false); // change
+  
   const [showOtpField, setShowOtpField] = useState(false); // change
   const [showPasswords, setShowPasswords] = useState({ // Add these State
     currentPassword: false,
@@ -89,6 +93,7 @@ const Profile = ({setIsAuthenticated}) => {
       if (result.isConfirmed) {
         // Clear local storage
         localStorage.clear();
+        setAccountData([]);
 
         setIsAuthenticated(false);
         Swal.fire(

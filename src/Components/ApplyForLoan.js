@@ -32,18 +32,20 @@ const ApplyForLoan = () => {
   const [err,setErr]=useState(false);
   const [stateLawAndLoanTermWeight, setStateLawAndLoanTermWeight] =
     useState(null);
-  const averageRiskLevel = localStorage.getItem("averageRiskLevel");
-  const riskScore = localStorage.getItem("averageRiskScore");
+    const averageRiskLevel = localStorage.getItem("averageRiskLevel");
+    const riskScore = localStorage.getItem("averageRiskScore");
+   
+   
+    const [errors, setErrors] = useState({
+      loanAmount: '',
+      repaymentTerm: '',
+      fromAccount: '',
+      toAccount: '',
+    });
+    const [state, setState] = useState(null);
+   
+  
  
-  const [errors, setErrors] = useState({
-    loanAmount: '',
-    repaymentTerm: '',
-    fromAccount: '',
-    toAccount: '',
-  });
-  const [state, setState] = useState(null);
- 
-  console.log("averageRiskLevel",averageRiskLevel)
 
 // Function to fetch plaid state data
 const plaidStateData = async () => {
@@ -189,9 +191,9 @@ const plaidStateData = async () => {
       newErrors.fromAccount = "Please select a 'Loan Disbursement Account'.";
     }
   
-    if (!selectedToAccount || !selectedInstitutionTo) {
-      newErrors.toAccount = "Please select a 'Repayment Account'.";
-    }
+    // if (!selectedToAccount || !selectedInstitutionTo) {
+    //   newErrors.toAccount = "Please select a 'Repayment Account'.";
+    // }
   
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -200,13 +202,13 @@ const plaidStateData = async () => {
   const calculateRate = ({
     paymentHistory,
     influencerScore,
-    externalFactors,
+    // externalFactors,
   }) => {
     // Define weightings for each factor
     const weights = {
       paymentHistory: 0.4,
       influencerScore: 0.3,
-      externalFactors: 0.3,
+      // externalFactors: 0.3,
     };
 
     // Calculate weighted scores with proper checks
@@ -214,14 +216,13 @@ const plaidStateData = async () => {
       (paymentHistory?.riskScore || 0) * weights.paymentHistory;
     const weightedInfluencerScore =
       ((influencerScore || 0) / 10) * weights.influencerScore;
-    const weightedExternalFactors =
-      (externalFactors || 0) * weights.externalFactors;
+    // const weightedExternalFactors =
+    //   (externalFactors || 0) * weights.externalFactors;
 
     // Calculate total risk score
     const totalRateScore =
       weightedPaymentHistory +
-      weightedInfluencerScore +
-      weightedExternalFactors;
+      weightedInfluencerScore ;
 
     return totalRateScore.toFixed(2); // Return the total interest rounded to two decimals
   };
@@ -230,7 +231,7 @@ const plaidStateData = async () => {
   const riskInputs = {
     paymentHistory: riskScore,
     influencerScore: score,
-    externalFactors: stateLawAndLoanTermWeight,
+    // externalFactors: stateLawAndLoanTermWeight,
   };
 
   const rateResult = calculateRate(riskInputs);
@@ -246,6 +247,11 @@ const plaidStateData = async () => {
 
 
   const handleSubmit = async () => {
+    if (rateResult > fetchedAPR) {
+      toast.error("Your interest rate has exceeded the allowed state APR limit. You cannot apply for a loan at this time. Please try again later.");
+     return
+   }
+
     if (!validateForm()) {
        toast.error('Fix the error before proceed');
       return
@@ -292,16 +298,16 @@ const plaidStateData = async () => {
             accountType: selectedFromAccount.type,
             accountSubtype: selectedFromAccount.subtype,
           },
-          toAccount: {
-            institutionId: selectedInstitutionTo.institution_id, 
-            institutionName: selectedInstitutionTo.institution_name,
-            accountId: selectedToAccount.accountId, 
-            accountName: selectedToAccount.name,
-            accountNumber:selectedToAccount.mask,
-            accountType: selectedToAccount.type,
-            accountSubtype: selectedToAccount.subtype,
+          // toAccount: {
+          //   institutionId: selectedInstitutionTo.institution_id, 
+          //   institutionName: selectedInstitutionTo.institution_name,
+          //   accountId: selectedToAccount.accountId, 
+          //   accountName: selectedToAccount.name,
+          //   accountNumber:selectedToAccount.mask,
+          //   accountType: selectedToAccount.type,
+          //   accountSubtype: selectedToAccount.subtype,
           
-          },
+          // },
         }),
       });
 
@@ -529,7 +535,7 @@ const plaidStateData = async () => {
       </select>
       {errors.fromAccount && <p className="text-red-500">{errors.fromAccount}</p>}
       {/* To Account */}
-      <div className="mt-6">
+      {/* <div className="mt-6">
         <label
           htmlFor="toAccount"
           className="mb-3 block text-[16px] text-[#8F959E] font-sans text-base leading-[21.82px] text-left"
@@ -556,7 +562,7 @@ const plaidStateData = async () => {
         </select>
         {errors.toAccount && <p className="text-red-500">{errors.toAccount}</p>}
 
-      </div>
+      </div> */}
     </div>
 
 
@@ -598,16 +604,17 @@ const plaidStateData = async () => {
 
         {/* Submit Button at Bottom */}
         <div className="p-4">
-          <button
-            onClick={handleSubmit}
-            className={`w-full font-sans bg-[#5EB66E] text-[#ffff] py-3 text-[16px] font-semibold rounded-md hover:bg-[#469F5E] focus:outline-none focus:ring-2 focus:ring-[#5EB66E] ${
-              err || averageRiskLevel === null 
+        <button
+          onClick={handleSubmit}
+          disabled={Number(rateResult) === 0} // Ensure it's compared correctly
+          className={`w-full font-sans py-3 text-[16px] font-semibold rounded-md focus:outline-none focus:ring-2 ${
+            Number(rateResult) === 0 || err || averageRiskLevel === null
               ? "bg-gray-300 text-gray-500 cursor-not-allowed" // Disabled state
-              : "bg-[#5EB66E] text-white" // Enabled state
-              }`}
-          >
-            Apply for Loan
-          </button>
+              : "bg-[#5EB66E] text-white hover:bg-[#469F5E] focus:ring-[#5EB66E]" // Enabled state
+          }`}
+        >
+          Apply for Loan
+        </button>
         </div>
       </div>
         <ToastContainer position="top-center" autoClose={2000} />

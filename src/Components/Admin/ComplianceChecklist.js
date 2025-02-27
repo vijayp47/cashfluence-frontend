@@ -9,8 +9,7 @@ const ComplianceChecklist = ({data}) => {
 
 const dummyImage = "https://via.placeholder.com/150"; // Fallback dummy image URL
 
-const encodedUrl = encodeURIComponent("https://documentary-assets-production-sandbox-cognito-us-west-2.s3.us-west-2.amazonaws.com/flwses_2dr4A6FZKMHGr6/2/back.jpeg?response-content-disposition=attachment%3B%20filename%3Doriginal_back.jpeg&response-content-type=image%2Fjpeg&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIATAVOPDHKSADOTAWM%2F20241227%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20241227T103733Z&X-Amz-Expires=60&X-Amz-SignedHeaders=host&X-Amz-Signature=12e81e7b0e30332a5e8561fa8760b979bcf37ebbc33fcc6bbfbca7903471fc5a");
-console.log(encodedUrl)
+
   // Open the modal with specific data
   const openModal = (section) => {
     setSelectedSection(section);

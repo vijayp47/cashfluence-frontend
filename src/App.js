@@ -33,21 +33,22 @@ import AdminForgotPass from "../src/Components/Admin/AdminForgotPass";
 import AdminResetPasswordForm from "./Components/Admin/AdminResetPasswordForm";
 import PlaidLink from "./Components/plaidLinkAccount";
 import { getUserProfile } from "./API/apiServices";
-import {  toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import TermsAndConditions from "./Components/TermsAndConditions";
 import UserBankDetails from "./Components/BankDetails";
+import Payment from "./Components/Payment";
 import ContactRecord from "./Components/ContactRecord";
+import AdminGraph from "./Components/Admin/AdminGraph";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [phylloSDKLoaded, setPhylloSDKLoaded] = useState(false);
-    const [image, setImage] = useState(null);
+  const [image, setImage] = useState(null);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
   };
 
   useEffect(() => {
-
     const loadPhylloSDK = () => {
       if (!window.PhylloSDK) {
         const script = document.createElement("script");
@@ -68,16 +69,13 @@ function App() {
     loadPhylloSDK();
   }, []);
 
-
-
-
   return (
     <Router>
       <div className="App">
         <Routes>
           {/* Authentication Route */}
-          <Route 
-          exact
+          <Route
+            exact
             path="/"
             element={
               isAuthenticated ? (
@@ -90,11 +88,19 @@ function App() {
 
           {/* KYC Profile Route */}
           <Route
-          exact
+            exact
             path="/kyc-profile"
             element={
               <ProtectedRoute>
-                <ProfileKYCForm  Image={image}/>
+                <ProfileKYCForm Image={image} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment"
+            element={
+              <ProtectedRoute>
+                <Payment />
               </ProtectedRoute>
             }
           />
@@ -105,7 +111,7 @@ function App() {
             path="/transaction-history"
             element={
               <ProtectedRoute>
-                <TransactionHistory Image={image}/>
+                <TransactionHistory Image={image} />
               </ProtectedRoute>
             }
           />
@@ -121,7 +127,7 @@ function App() {
             path="/profile"
             element={
               <ProtectedRoute>
-                <Profile  setIsAuthenticated={setIsAuthenticated}/>
+                <Profile setIsAuthenticated={setIsAuthenticated} />
               </ProtectedRoute>
             }
           />
@@ -135,9 +141,18 @@ function App() {
           />
 
           {/* Verification In Progress Route */}
-          <Route path="/verification" element={<VerificationInProgress Image={image}/>} />
-          <Route path="/socialaccount" element={<ConnectAccounts Image={image}/>} />
-          <Route path="/forgot-password" element={<ForgotPasswordForm Image={image}/>} />
+          <Route
+            path="/verification"
+            element={<VerificationInProgress Image={image} />}
+          />
+          <Route
+            path="/socialaccount"
+            element={<ConnectAccounts Image={image} />}
+          />
+          <Route
+            path="/forgot-password"
+            element={<ForgotPasswordForm Image={image} />}
+          />
 
           {/* Reset Password Route */}
           <Route
@@ -154,7 +169,7 @@ function App() {
             path="/applyforloan"
             element={
               <ProtectedRoute>
-                <ApplyForLoan Image={image}/>
+                <ApplyForLoan Image={image} />
               </ProtectedRoute>
             }
           />
@@ -166,15 +181,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-   <Route
+          <Route
             path="/terms-conditions"
             element={
               <ProtectedRoute>
-                <TermsAndConditions Image={image}/>
+                <TermsAndConditions Image={image} />
               </ProtectedRoute>
             }
           />
-
 
           <Route path="/home" element={<Home />} />
           <Route path="/admin" element={<AdminLogin />} />
@@ -198,7 +212,7 @@ function App() {
             }
           />
 
-<Route
+          <Route
             path="/admin/contact-record"
             element={
               <ProtectedRoute adminOnly={true}>
@@ -217,6 +231,15 @@ function App() {
           />
 
           <Route
+            path="admin/visual-representation"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <AdminGraph />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/admin/dashboard"
             element={
               <ProtectedRoute adminOnly={true}>
@@ -229,7 +252,7 @@ function App() {
             path="/bank-details"
             element={
               <ProtectedRoute>
-                <UserBankDetails Image={image}/>
+                <UserBankDetails Image={image} />
               </ProtectedRoute>
             }
           />
@@ -242,9 +265,9 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/contact" element={<ContactSupport Image={image}/>} />
-          <Route path="/faq" element={<FAQ Image={image}/>} />
-          
+          <Route path="/contact" element={<ContactSupport Image={image} />} />
+          <Route path="/faq" element={<FAQ Image={image} />} />
+
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>

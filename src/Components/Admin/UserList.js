@@ -31,7 +31,6 @@ const UserList = () => {
       const data = await response.json();
 
       if (data.success) {
-        console.log("data...", data.users)
         setUsers(data.users);
         setTotalPages(data.totalPages);
       } else {
@@ -54,7 +53,6 @@ const UserList = () => {
 
   // Function to handle card click (navigate to user details)
   const handleCardClick = (userId) => {
-    // console.log("userId at userList", userId)
     navigate(`/user/${userId}`);
   };
 
@@ -101,10 +99,10 @@ const UserList = () => {
                        {/* Display the number of pending loans */}
                        <span className="font-sans border-2 border-black font-bold text-black py-1 px-4 rounded-lg">
                        {user?.loans && user.loans.length > 0
-                          ? user.loans.some((loan) => loan.status === "Pending")
-                            ? "Pending Loans"  // Show this if there's any loan with status "Pending"
-                            : "No pending Loans"  // Show this if there are loans with status "Approved" or "Rejected"
-                          : "No Loans"} 
+   ? user.loans.some((loan) => loan.status === "Pending")
+     ? "Pending Loans"  // Show this if there's any loan with status "Pending"
+     : "No pending Loans"  // Show this if there are loans with status "Approved" or "Rejected"
+   : "No Loans"} 
                        </span>
                      </div></>
               ))}

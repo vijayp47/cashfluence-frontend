@@ -4,62 +4,49 @@ import { useNavigate } from "react-router-dom";
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import Cookies from 'js-cookie';
+import axios from "axios";
 import useStore from "./store/userProfileStore"; 
 import Loader from "./Loader";
+import CheckoutForm from '../../src/Components/CheckoutForm'
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
+import {updateStatusForIdentityPayment} from "../API/apiServices"
+
+const stripePromise = loadStripe("pk_test_51PnDYCHJvnanatbhqplAFXJaRmLHiZf225u3hQ4FL3AcN5ear6ZZsggNWieJcHnf5pacaIYT3gB2k2ti0LsWOyRo00dEmBlxTO");
+
 
 const ProfileKYCForm = () => {
+  const BASE_URL = process.env.REACT_APP_BASE_URL;
   const { profileData, fetchProfileData } = useStore();
   const [linkToken, setLinkToken] = useState(null);
-  const [kycStatus, setKycStatus] = useState("Pending");
-  const [antiFraudStatus, setAntiFraudStatus] = useState("Pending");
-  const [regulatoryStatus, setRegulatoryStatus] = useState("Pending");
-  const BASE_URL = process.env.REACT_APP_BASE_URL;
   const [loading, setLoading] = useState(false);
   const [userIdvStatus, setUserIdvStatus] = useState(null);
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
-  const [outputMessage, setOutputMessage] = useState('');
-  
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [clientSecret, setClientSecret] = useState(null);
+  const [hasPaidForVerification, setHasPaidForVerification] = useState(false);
+  const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
   const navigate = useNavigate();
+
+
+  console.log("hasPaidForVerification",hasPaidForVerification)
 
   useEffect(() => {
     if (!profileData) {
-      fetchProfileData(); // Fetch data if not already present
+      fetchProfileData(); // Fetch data only if it's not available
     }
   }, [profileData, fetchProfileData]);
+
+  useEffect(() => {
+    if (profileData?.hasPaidForVerification !== undefined) {
+      setHasPaidForVerification(profileData.hasPaidForVerification);
+    }
+  }, [profileData]);
 
   const getAuthToken = () => {
     return localStorage.getItem('userToken') || ''; 
   };
-
-  const prefillData = async () => {
-    const userId = localStorage.getItem("user_id");
-    try {
-      const token = getAuthToken()
-      const response = await fetch(`${BASE_URL}/plaid/prefill_idv_data`, {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = await response.json();
-      console.log('Prefill data response:', data);
-
-      // Update the UI to reflect that the prefill data has been processed
-      setIsButtonDisabled(true);
-      setOutputMessage("Okay, we're going to pretend you already gave us your full name, birthday, and mailing address, so you don't have to fill it out again.");
-    } catch (error) {
-      console.error('Error fetching prefill data:', error);
-    }
-  };
   
+
   const fetchLinkToken = async () => {
     setLoading(true);
     try {
@@ -94,6 +81,41 @@ const ProfileKYCForm = () => {
       setLoading(false);
     }
   };
+
+  const startPaymentProcess = async () => {
+    try {
+      const { data } = await axios.post(
+        `${BASE_URL}/payment/create-payment-intent`,
+        { amount: 1000, currency: "usd" },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      setClientSecret(data.clientSecret);
+      console.log("clientSecret",data.clientSecret)
+      setShowPaymentModal(true);
+      setShowPaymentPrompt(false);
+    } catch (error) {
+      toast.error("Payment initialization failed.");
+    }
+  };
+
+ 
+const handlePaymentSuccess = async () => {
+  try {
+    const response = await updateStatusForIdentityPayment();
+    
+    
+    if (response?.success) {
+      toast.success("Payment successful! You can now proceed with Identity verification.");
+      setHasPaidForVerification(true);
+      setShowPaymentModal(false);
+    } else {
+      throw new Error("Failed to update payment status.");
+    }
+  } catch (error) {
+    toast.error("Failed to update payment status.");
+    console.error("Payment Status Update Error:", error);
+  }
+};
 
   const retryIdentityVerification = async () => {
     const userId = localStorage.getItem("user_id");
@@ -225,8 +247,17 @@ const ProfileKYCForm = () => {
     handler.open();
   };
 
+  const handleStartVerification = () => {
+    if (hasPaidForVerification) {
+      startLinkIDV() // Directly start IDV
+    } else {
+      setShowPaymentPrompt(true); // Open payment prompt modal
+    }
+  };
+
   return (
     <>
+    <Elements stripe={stripePromise} options={clientSecret ? { clientSecret } : null}>
     <div className="flex justify-center min-h-screen">
       <div className="bg-white shadow-md rounded-lg w-full max-w-md h-full min-h-screen flex flex-col">
         {/* Header */}
@@ -287,38 +318,61 @@ const ProfileKYCForm = () => {
           ) : (
             <button
               className="px-4 py-2 bg-[#5EB66E] text-white rounded disabled:opacity-50"
-              onClick={startLinkIDV}
+              onClick={handleStartVerification}
               disabled={!linkToken || loading} // || userIdvStatus === "success" disable when user status is success
             >
-              {["failed", "incomplete", "active", "success","undefined"].includes(userIdvStatus)
+              {["failed", "incomplete", "active", "success", "undefined"].includes(userIdvStatus)
                 ? "Restart Identity Verification"
-                : "Start Identity Verification"}
+                : 
+                 "Start Identity Verification"
+                }
 
                       </button>
                     )}
         </div>
         <div className="p-4">
-      <button
-        onClick={() => {
-          navigate('/bank-details');
-        }}
-        disabled={["failed", "incomplete",undefined].includes(userIdvStatus)}
-        className={`font-sans w-full bg-[#5EB66E] text-[#ffff] py-3 text-[16px] font-semibold rounded-md  focus:outline-none focus:ring-2  ${
-          ["failed", "incomplete",undefined].includes(userIdvStatus)
-            ? "bg-gray-300 text-gray-500 cursor-not-allowed" // Disabled state
-            : "bg-[#5EB66E] text-white"
-        }`}
-      >
-        Continue
-      </button>
+          <button
+            onClick={() => {
+              navigate('/bank-details');
+            }}
+            disabled={["failed", "incomplete",undefined].includes(userIdvStatus)}
+            className={`font-sans w-full bg-[#5EB66E] text-[#ffff] py-3 text-[16px] font-semibold rounded-md  focus:outline-none focus:ring-2  ${
+              ["failed", "incomplete",undefined].includes(userIdvStatus)
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed" // Disabled state
+                : "bg-[#5EB66E] text-white"
+            }`}
+          >
+            Continue
+          </button>
+        </div>
       </div>
-
-      </div>
-
     </div>
-
+    {/* Payment Prompt Modal */}
+    {showPaymentPrompt && (
+          <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+              <h2 className="text-xl font-semibold mb-4">Payment Required</h2>
+              <p className="mb-4 text-gray-700">You need to make a one-time payment for identity verification.</p>
+              <button className="px-4 py-2 bg-[#5EB66E] text-white rounded mb-3" onClick={startPaymentProcess}>
+                Proceed to Payment
+              </button>
+              <br/>
+              <button className="mt-1 text-red-600 font-semibold text-lg block w-full text-center" onClick={() => setShowPaymentPrompt(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+      )}
+    {clientSecret && (
+        <Elements stripe={stripePromise} options={{ clientSecret }}>
+          {showPaymentModal && (
+            <CheckoutForm onSuccess={handlePaymentSuccess} onClose={() => setShowPaymentModal(false)} />
+          )}
+        </Elements>
+      )}
      <ToastContainer position="top-center" autoClose={2000} />
-   </>
+    </Elements>
+    </>
   );
 };
 

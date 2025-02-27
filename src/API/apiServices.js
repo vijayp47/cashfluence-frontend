@@ -157,7 +157,7 @@ export const getRiskScore = async (accessTokensArray) => {
     // Use POST to send accessTokens in the request body
     const response = await axios.post(
       `${BASE_URL}/plaid/riskscore`, // Using POST method to send data in body
-      { accessTokens: accessTokensArray }, // Body of the request
+      { accessTokens: accessTokensArray, userId: userId,  }, // Body of the request
       {
         headers: {
           'Content-Type': 'application/json',
@@ -324,7 +324,6 @@ export const getDataFromDatabaseAdmin = async ({ userId }) => {
     const response = await axios.get(`${BASE_URL}/phyllo/fetchDataFromdatabaseadmin`, {
       params: {
         userId: userId,
-    
        
       },   headers: {
         'Authorization': `Bearer ${token}` // Add token to the request headers
@@ -338,9 +337,70 @@ export const getDataFromDatabaseAdmin = async ({ userId }) => {
     throw error;
   }
 };
+export const fetchUserRegistrations = async () => {
+  const token = localStorage.getItem("adminToken"); 
+  if (!token) {
+    throw new Error("Admin token not found.");
+  }
+
+  try {
+    const response = await axios.get(`${BASE_URL}/admin/user-registrations`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send token for authentication
+      },
+    });
+
+    return response?.data?.data || []; // Return only the data array
+  } catch (error) {
+    console.error("Error fetching user registrations:", error);
+    throw error;
+  }
+};
+
+export const getDataForLoanGraphs = async () => {
+  const token = localStorage.getItem("adminToken"); // Get token from localStorage
+  
+  if (!token) {
+    console.error("Admin token is missing");
+    throw new Error("Authorization token is missing");
+  }
+
+  try {
+    const response = await axios.get(`${BASE_URL}/admin/loan-graph`, {
+      headers: {
+        "Content-Type": "application/json", // Set Content-Type for the request
+        Authorization: `Bearer ${token}`, // Attach the Bearer token for authorization
+      },
+    });
+    return response.data; // Return the data directly
+  } catch (error) {
+    console.error("Error fetching Loan Stats:", error);
+    throw new Error(error.response?.data?.message || "Failed to fetch Loan Graph Stats");
+  }
+};
 
 
+export const getDataForTransactionGraph = async () => {
+  const token = localStorage.getItem("adminToken"); // Get token from localStorage
+  
+  if (!token) {
+    console.error("Admin token is missing");
+    throw new Error("Authorization token is missing");
+  }
 
+  try {
+    const response = await axios.get(`${BASE_URL}/admin/transaction-graph`, {
+      headers: {
+        "Content-Type": "application/json", // Set Content-Type for the request
+        Authorization: `Bearer ${token}`, // Attach the Bearer token for authorization
+      },
+    });
+    return response.data; // Return the data directly
+  } catch (error) {
+    console.error("Error fetching Transaction Stats:", error);
+    throw new Error(error.response?.data?.message || "Failed to fetch Transaction Graph Stats");
+  }
+};
 
 export const deletePlatformDataFromDatabase = async ({ userId, platformName }) => {
   const token = getAuthToken();
@@ -392,7 +452,11 @@ export const fetchLoanStatus = async (loanId) => {
   }
 };
 
-export const updateStatusAdmin = async ({ loanId, status,adminName ,userEmail,transactionId,userName,loanAmount,approvalDate}) => {
+
+
+
+export const updateStatusAdmin = async ({ loanId,userId, status,adminName ,adminEmail,userEmail,transactionId,userName,loanAmount,approvalDate,   interestRate,
+  months}) => {
   const token = localStorage.getItem("adminToken");
   
   // Check if token exists before making the request
@@ -404,7 +468,7 @@ export const updateStatusAdmin = async ({ loanId, status,adminName ,userEmail,tr
   try {
     const response = await axios.post(
       `${BASE_URL}/loans/${loanId}`,
-      { status,adminName ,userEmail,transactionId,userName,loanAmount,approvalDate,loanId }, // Directly send the status in the request body
+      { status,adminName ,adminEmail,userEmail,transactionId,userName,loanAmount,approvalDate,loanId,userId,interestRate,months }, // Directly send the status in the request body
       {
         headers: {
           "Content-Type": "application/json",
@@ -518,6 +582,39 @@ export const fetchTransactions = async (startDate, endDate) => {
     }
   } catch (err) {
     console.error("Error in fetchTransactions:", err.response || err); // Debugging
+    throw new Error(err.response?.data?.error || "An unexpected error occurred");
+  }
+};
+
+
+export const fetchAverageBalance = async (startDate, endDate) => {
+  const token = getAuthToken();
+  const accessToken = localStorage.getItem("plaidToken");
+
+  if (!accessToken) {
+    throw new Error("Access token not found");
+  }
+
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/plaid/average-balance`,
+      { accessToken, startDate, endDate },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 10000, // Optional timeout
+      }
+    );
+
+    if (response && response.data) {
+      return response.data;
+    } else {
+      throw new Error('Unexpected response format');
+    }
+  } catch (err) {
+    console.error("Error in fetchAverageBalance:", err.response || err);
     throw new Error(err.response?.data?.error || "An unexpected error occurred");
   }
 };
@@ -681,7 +778,41 @@ export const updatePassword = async ({ currentPassword, newPassword , confirmPas
      throw error; // Ensure the error is propagated for further handling
    }
  };
- 
+ export const updateStatusForIdentityPayment = async () => {
+  const token = getAuthToken();
+  
+  // Check if token exists before making the request
+  if (!token) {
+    console.error("User token is missing");
+    throw new Error("Authorization token is missing");
+  }
+
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/auth/update-identity-payment-status`,
+      { hasPaidForVerification: true }, // ✅ Pass data correctly
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Check the response for success
+    if (response?.data?.success) {
+      return response.data;  // Return the response data if needed
+    } else {
+      console.error(`Failed to update user one-time payment status: ${response?.data?.message || "Unknown error"}`);
+      throw new Error(`Failed to update identity payment status`);
+    }
+  } catch (error) {
+    console.error("Error while updating payment status:", error.response?.data || error.message);
+    throw error; // Ensure the error is propagated for further handling
+  }
+};
+
+
 
  export const updateUserPassword = async ({  currentPassword,
   newPassword,
