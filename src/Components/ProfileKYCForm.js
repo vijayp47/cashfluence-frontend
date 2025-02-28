@@ -248,11 +248,9 @@ const handlePaymentSuccess = async () => {
   };
 
   const handleStartVerification = () => {
-    if (hasPaidForVerification) {
+    
       startLinkIDV() // Directly start IDV
-    } else {
-      setShowPaymentPrompt(true); // Open payment prompt modal
-    }
+  
   };
 
   return (
@@ -348,7 +346,7 @@ const handlePaymentSuccess = async () => {
       </div>
     </div>
     {/* Payment Prompt Modal */}
-    {showPaymentPrompt && (
+    {/* {showPaymentPrompt && (
           <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
             <div className="bg-white p-6 rounded-lg shadow-lg text-center">
               <h2 className="text-xl font-semibold mb-4">Payment Required</h2>
@@ -369,7 +367,7 @@ const handlePaymentSuccess = async () => {
             <CheckoutForm onSuccess={handlePaymentSuccess} onClose={() => setShowPaymentModal(false)} />
           )}
         </Elements>
-      )}
+      )} */}
      <ToastContainer position="top-center" autoClose={2000} />
     </Elements>
     </>

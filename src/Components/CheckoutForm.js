@@ -32,6 +32,8 @@ const CheckoutForm = ({ onSuccess, onClose, clientSecret }) => {
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
                 <h2 className="text-2xl font-bold mb-5 text-center">Complete Payment</h2>
+                    {/* Display the amount */}
+                    <p className="text-lg text-center mb-4 font-semibold">Amount: $80 USD</p>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Payment Element for multiple payment methods */}

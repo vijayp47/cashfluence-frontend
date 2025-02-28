@@ -3,18 +3,25 @@ import { useNavigate } from "react-router-dom";
 import { BiLogOutCircle } from "react-icons/bi";
 import { FaUser } from "react-icons/fa";
 import { useLocation } from "react-router-dom";
+import axios from 'axios';
 import useRiskStore from "./store/useRiskStore";
+import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { ToastContainer, toast } from 'react-toastify';
+import CheckoutForm from '../../src/Components/CheckoutForm';
+import { loadStripe } from "@stripe/stripe-js";
 import 'react-toastify/dist/ReactToastify.css';
 import {
-  fetchStateAnnualPercentageRate,
+  fetchStateAnnualPercentageRate,updateStatusForIdentityPayment,fetchLastLoginAt
 } from "../API/apiServices";
 import Swal from "sweetalert2";
 import Loader from "./Loader";
 import useStore from "./store/userProfileStore";
 import useInfluencerStore from "./store/useInfluencerStore";
 import useAccountStore from "./store/useAccountStore";
+
 const ApplyForLoan = () => {
+  const stripePromise = loadStripe("pk_test_51PnDYCHJvnanatbhqplAFXJaRmLHiZf225u3hQ4FL3AcN5ear6ZZsggNWieJcHnf5pacaIYT3gB2k2ti0LsWOyRo00dEmBlxTO");
+  
   const { influencerProfile, score, isLoading, fetchInfluencerProfile } = useInfluencerStore();
   const { profileData, fetchProfileData } = useStore();
   const BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -29,6 +36,10 @@ const ApplyForLoan = () => {
   const [selectedInstitutionTo, setSelectedInstitutionTo] = useState(null);
   const [selectedToAccount, setSelectedToAccount] = useState(null);
   const {accountData, setAccountData,fetchAccountData} = useAccountStore();
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [clientSecret, setClientSecret] = useState(null);
+    const [hasPaidForVerification, setHasPaidForVerification] = useState(false);
+    const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
   const [err,setErr]=useState(false);
   const [stateLawAndLoanTermWeight, setStateLawAndLoanTermWeight] =
     useState(null);
@@ -40,10 +51,69 @@ const ApplyForLoan = () => {
       loanAmount: '',
       repaymentTerm: '',
       fromAccount: '',
-      toAccount: '',
+     
     });
     const [state, setState] = useState(null);
+
+    const [lastLoginAt, setLastLoginAt] = useState(null);
    
+    const [error, setError] = useState(null);
+  
+    useEffect(() => {
+      const getLastLogin = async () => {
+        try {
+          const lastLogin = await fetchLastLoginAt();
+          setLastLoginAt(lastLogin);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      getLastLogin();
+    }, []);
+  
+   
+    const startPaymentProcess = async () => {
+      try {
+        const { data } = await axios.post(
+          `${BASE_URL}/payment/create-payment-intent`,
+          { amount: 80, currency: "usd" },
+          { headers: { "Content-Type": "application/json" } }
+        );
+        setClientSecret(data.clientSecret);
+        console.log("clientSecret",data.clientSecret)
+        setShowPaymentModal(true);
+        setShowPaymentPrompt(false);
+      } catch (error) {
+        toast.error("Payment initialization failed.");
+      }
+    };
+  
+     useEffect(() => {
+        if (profileData?.hasPaidForVerification !== undefined) {
+          setHasPaidForVerification(profileData.hasPaidForVerification);
+        }
+      }, [profileData]);
+   
+  const handlePaymentSuccess = async () => {
+    try {
+      const response = await updateStatusForIdentityPayment();
+      
+      
+      if (response?.success) {
+        toast.success("Payment successful! You can now proceed with Loan.");
+        setHasPaidForVerification(true);
+        setShowPaymentModal(false);
+      } else {
+        throw new Error("Failed to update payment status.");
+      }
+    } catch (error) {
+      toast.error("Failed to update payment status.");
+      console.error("Payment Status Update Error:", error);
+    }
+  };
   
  
 
@@ -247,110 +317,123 @@ const plaidStateData = async () => {
 
 
   const handleSubmit = async () => {
-    if (rateResult > fetchedAPR) {
-      toast.error("Your interest rate has exceeded the allowed state APR limit. You cannot apply for a loan at this time. Please try again later.");
-     return
-   }
 
-    if (!validateForm()) {
-       toast.error('Fix the error before proceed');
-      return
-    }
-    
-    const token = localStorage.getItem("userToken");
-   
-    if (!token) {
-      Swal.fire({
-        text: "You need to be logged in to apply for a loan.",
-        icon: "warning",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-      return;
-    }
+    if (hasPaidForVerification) {
 
-    try {
-      setLoading(true);
-
-
-      // If no pending payments, proceed to apply for a new loan
-      const response = await fetch(`${BASE_URL}/loans/apply`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Add the Authorization header with the token
-        },
-        body: JSON.stringify({
-          amount: loanAmount,
-          repaymentTerm,
-          account: accountNumber,
-          interest: rateResult,
-          loanrequested: true,
-          riskLevel: averageRiskLevel,
-          riskScore: riskScore,
-          fromAccount: {
-            institutionId: selectedInstitutionFrom.institution_id, 
-            institutionName: selectedInstitutionFrom.institution_name,
-            
-            accountId: selectedFromAccount.accountId, 
-            accountName: selectedFromAccount.name,
-            accountNumber:selectedFromAccount.mask,
-            accountType: selectedFromAccount.type,
-            accountSubtype: selectedFromAccount.subtype,
-          },
-          // toAccount: {
-          //   institutionId: selectedInstitutionTo.institution_id, 
-          //   institutionName: selectedInstitutionTo.institution_name,
-          //   accountId: selectedToAccount.accountId, 
-          //   accountName: selectedToAccount.name,
-          //   accountNumber:selectedToAccount.mask,
-          //   accountType: selectedToAccount.type,
-          //   accountSubtype: selectedToAccount.subtype,
-          
-          // },
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
+      if (rateResult > fetchedAPR) {
+        toast.error("Your interest rate has exceeded the allowed state APR limit. You cannot apply for a loan at this time. Please try again later.");
+       return
+     }
+  
+      if (!validateForm()) {
+         toast.error('Fix the error before proceed');
+        return
+      }
+      
+      const token = localStorage.getItem("userToken");
+      if (!token) {
         Swal.fire({
-          text: "Loan application submitted!",
-          icon: "success",
+          text: "You need to be logged in to apply for a loan.",
+          icon: "warning",
           timer: 2000,
           showConfirmButton: false,
         });
-        localStorage.setItem("loanId", result?.loanApplication?.id);
-
-        // Navigate to loan confirmation page
-        navigate("/loanconfirmation", {
-          state: { loanId: result?.loanApplication?.id },
+        return;
+      }
+      try {
+        setLoading(true);
+  
+  
+        // If no pending payments, proceed to apply for a new loan
+        const response = await fetch(`${BASE_URL}/loans/apply`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Add the Authorization header with the token
+          },
+          body: JSON.stringify({
+            amount: loanAmount,
+            repaymentTerm,
+            account: accountNumber,
+            interest: rateResult,
+            loanrequested: true,
+            riskLevel: averageRiskLevel,
+            riskScore: riskScore,
+            fromAccount: {
+              institutionId: selectedInstitutionFrom.institution_id, 
+              institutionName: selectedInstitutionFrom.institution_name,
+              
+              accountId: selectedFromAccount.accountId, 
+              accountName: selectedFromAccount.name,
+              accountNumber:selectedFromAccount.mask,
+              accountType: selectedFromAccount.type,
+              accountSubtype: selectedFromAccount.subtype,
+            },
+            lastLoginAt:lastLoginAt
+            // toAccount: {
+            //   institutionId: selectedInstitutionTo.institution_id, 
+            //   institutionName: selectedInstitutionTo.institution_name,
+            //   accountId: selectedToAccount.accountId, 
+            //   accountName: selectedToAccount.name,
+            //   accountNumber:selectedToAccount.mask,
+            //   accountType: selectedToAccount.type,
+            //   accountSubtype: selectedToAccount.subtype,
+            
+            // },
+          }),
         });
-      } else {
-        // Display error if loan application fails
+  
+        const result = await response.json();
+  
+        if (result.success) {
+          Swal.fire({
+            text: "Loan application submitted!",
+            icon: "success",
+            timer: 2000,
+            showConfirmButton: false,
+          });
+          localStorage.setItem("loanId", result?.loanApplication?.id);
+  
+          // Navigate to loan confirmation page
+          navigate("/loanconfirmation", {
+            state: { loanId: result?.loanApplication?.id },
+          });
+        } else {
+          // Display error if loan application fails
+          Swal.fire({
+            text: result.message || "Failed to submit loan application.",
+            icon: "error",
+            timer: 3000,
+            showConfirmButton: false,
+          });
+        }
+      } catch (error) {
+        console.error("Error:", error);
         Swal.fire({
-          text: result.message || "Failed to submit loan application.",
+          text: "An error occurred while processing your request.",
           icon: "error",
           timer: 3000,
           showConfirmButton: false,
         });
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error:", error);
-      Swal.fire({
-        text: "An error occurred while processing your request.",
-        icon: "error",
-        timer: 3000,
-        showConfirmButton: false,
-      });
-    } finally {
-      setLoading(false);
+    } else {
+      setShowPaymentPrompt(true); // Open payment prompt modal
     }
+    
+
+   
+
+ 
   };
 
   if (loading) {
     <Loader />;
   }
+
+
+
 
   return (
     <div className="flex justify-center  min-h-screen ">
@@ -617,6 +700,30 @@ const plaidStateData = async () => {
         </button>
         </div>
       </div>
+       {/* Payment Prompt Modal */}
+    {showPaymentPrompt && (
+          <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+              <h2 className="text-xl font-semibold mb-4">Payment Required</h2>
+              <p className="mb-4 text-gray-700">You need to make a one-time payment for identity verification.</p>
+              <button className="px-4 py-2 bg-[#5EB66E] text-white rounded mb-3" onClick={startPaymentProcess}>
+                Proceed to Payment
+              </button>
+              <br/>
+              <button className="mt-1 text-red-600 font-semibold text-lg block w-full text-center" onClick={() => setShowPaymentPrompt(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+      )}
+    {clientSecret && (
+        <Elements stripe={stripePromise} options={{ clientSecret }}>
+          {showPaymentModal && (
+            <CheckoutForm onSuccess={handlePaymentSuccess} onClose={() => setShowPaymentModal(false)} clientSecret={clientSecret}/>
+          )}
+        </Elements>
+      )}
+
         <ToastContainer position="top-center" autoClose={2000} />
     </div>
     

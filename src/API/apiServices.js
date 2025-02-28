@@ -141,6 +141,16 @@ export const createSDKtoken = async () => {
 };
 
 
+export const fetchLoanDurations = async () => {
+  try {
+    const response = await axios.get(`${BASE_URL}/loans/loan-durations`);
+    return response.data.data; // Return only data
+  } catch (error) {
+    console.error("Error fetching loan durations:", error);
+    return []; // Return empty array on error
+  }
+};
+
 export const getRiskScore = async (accessTokensArray) => {
   const token = getAuthToken();
 
@@ -452,6 +462,22 @@ export const fetchLoanStatus = async (loanId) => {
   }
 };
 
+
+// Function to fetch last login time
+export const fetchLastLoginAt = async () => {
+  try {
+    const token = localStorage.getItem("token"); // Retrieve auth token if required
+    const response = await axios.get(`${BASE_URL}/auth/last-login`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send token in headers
+      },
+    });
+    return response.data.lastLoginAt;
+  } catch (error) {
+    console.error("Error fetching last login time:", error);
+    throw error;
+  }
+};
 
 
 

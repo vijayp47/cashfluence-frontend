@@ -30,7 +30,7 @@ const AdminDashboard = () => {
   const [institutionName, setInstitutionName] = useState("");
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [applyFilter, setApplyFilter] = useState(false);
+  const [applyFilter, setApplyFilter] = useState(true);
   const sectionRef = useRef(null);
 
   const fetchProfileData = async () => {
@@ -842,7 +842,7 @@ const AdminDashboard = () => {
               </h2>
 
               <div className="flex items-center w-full sm:w-1/5 justify-between sm:justify-center  mb-3">
-                <div className="flex flex-col items-center  ">
+                {/* <div className="flex flex-col items-center  ">
                   <label className="flex items-center">
                     <input
                       type="checkbox"
@@ -852,9 +852,9 @@ const AdminDashboard = () => {
                     />
                     Enable Filters
                   </label>
-                </div>
+                </div> */}
 
-                <div className="ml-3">
+                <div className="ml-[13rem]">
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="relative p-1 bg-gray-200 rounded-full"
@@ -1026,7 +1026,7 @@ const AdminDashboard = () => {
                             loanMaxAmount == 2000 &&
                             loanMinAmount == 500
                           }
-                          className={`w-[20vw] h-[5vh] md:w-auto lg:px-5 lg:py-3 text-sm rounded-md text-white 
+                          className={`w-[20vw] h-[6vh] md:w-auto lg:px-5 lg:py-3 text-sm rounded-md text-white 
       ${
         accountName == "" &&
         accountNumber == "" &&

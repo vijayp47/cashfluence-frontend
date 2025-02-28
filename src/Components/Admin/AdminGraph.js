@@ -7,7 +7,7 @@ import Headers from "../Layout/Header";
 import {
   updateAdminProfile,
   getAdminProfile,
-  updatePassword,
+  updatePassword,fetchLoanDurations
 } from "../../API/apiServices";
 const AdminGraph = () => {
   const [profileData, setProfileData] = useState([]);
@@ -22,23 +22,25 @@ const AdminGraph = () => {
       loanAmountData: [],
       loanCompletionData: [],
     });
-    const [transactionDataj, setTransactionData] = useState({ monthlyTransactions: [], yearlyTransactions: [] });
-    const transactionData = {
-      monthlyTransactions: [
-        { date: "2024-01-01", totalAmount: 12000 },
-        { date: "2024-02-01", totalAmount: 15000 },
-        { date: "2024-03-01", totalAmount: 11000 },
-        { date: "2024-04-01", totalAmount: 17000 },
-        { date: "2024-05-01", totalAmount: 14000 },
-        { date: "2024-06-01", totalAmount: 18000 },
-      ],
-      yearlyTransactions: [
-        { date: "2022-01-01", totalAmount: 90000 },
-        { date: "2023-01-01", totalAmount: 120000 },
-        { date: "2024-01-01", totalAmount: 150000 },
-      ],
-    };
+    const [loanData, setLoanData] = useState([]);
 
+    const [transactionData, setTransactionData] = useState({ monthlyTransactions: [], yearlyTransactions: [] });
+    // const transactionData = {
+    //   monthlyTransactions: [
+    //     { date: "2024-01-01", totalAmount: 12000 },
+    //     { date: "2024-02-01", totalAmount: 15000 },
+    //     { date: "2024-03-01", totalAmount: 11000 },
+    //     { date: "2024-04-01", totalAmount: 17000 },
+    //     { date: "2024-05-01", totalAmount: 14000 },
+    //     { date: "2024-06-01", totalAmount: 18000 },
+    //   ],
+    //   yearlyTransactions: [
+    //     { date: "2022-01-01", totalAmount: 90000 },
+    //     { date: "2023-01-01", totalAmount: 120000 },
+    //     { date: "2024-01-01", totalAmount: 150000 },
+    //   ],
+    // };
+  
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -110,6 +112,8 @@ const AdminGraph = () => {
     useEffect(() => {
       fetchProfileData();
     }, []);
+
+
   // Dummy data for graphs (replace with real API data)
 //   const userRegistrationData = [
 //     { month: "Jan 2024", users: 50 },
@@ -120,27 +124,6 @@ const AdminGraph = () => {
 //     { month: "Jun 2024", users: 200 },
 //   ];
   
-
-  const loanApplicationStatus = [
-    { name: "Approved", value: 40 },
-    { name: "Pending", value: 30 },
-    { name: "Rejected", value: 20 },
-  ];
-
-  const loanAmountData = [
-    { name: "Total Loan", amount: 50000 },
-    { name: "Repaid Amount", amount: 20000 },
-  ];
-
-  const socialMediaUsage = [
-    { platform: "YouTube", users: 50 },
-    { platform: "Instagram", users: 30 },
-    { platform: "TikTok", users: 20 },
-  ];
-
-
-
-
 
   const COLORS = ["#0088FE", "#FFBB28", "#FF8042"];
 
