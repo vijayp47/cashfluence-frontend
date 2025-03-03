@@ -39,8 +39,6 @@ import UserBankDetails from "./Components/BankDetails";
 import Payment from "./Components/Payment";
 import ContactRecord from "./Components/ContactRecord";
 import AdminGraph from "./Components/Admin/AdminGraph";
-import AdminAnalytics from "./Components/Admin/AdminAnalytics";
-
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [phylloSDKLoaded, setPhylloSDKLoaded] = useState(false);
@@ -237,15 +235,6 @@ function App() {
             element={
               <ProtectedRoute adminOnly={true}>
                 <AdminGraph />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/admin/analytics"
-            element={
-              <ProtectedRoute adminOnly={true}>
-                <AdminAnalytics />
               </ProtectedRoute>
             }
           />
