@@ -6,6 +6,8 @@ import {
   Navigate,
 } from "react-router-dom";
 import "./App.css";
+import ReactGA from "react-ga";
+import { useLocation } from "react-router-dom";
 
 import AdminDashboard from "../src/Components/Admin/AdminDashboard";
 import AdminLogin from "./Components/Admin/AdminLogin";
@@ -39,6 +41,7 @@ import UserBankDetails from "./Components/BankDetails";
 import Payment from "./Components/Payment";
 import ContactRecord from "./Components/ContactRecord";
 import AdminGraph from "./Components/Admin/AdminGraph";
+import AdminAnalytics from "./Components/Admin/AdminAnalytics";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [phylloSDKLoaded, setPhylloSDKLoaded] = useState(false);
@@ -47,6 +50,23 @@ function App() {
   const handleLogin = () => {
     setIsAuthenticated(true);
   };
+
+ 
+const TRACKING_ID = process.env.REACT_APP_GA_MEASUREMENT_ID; // Use .env variable
+if (TRACKING_ID) {
+  ReactGA.initialize(TRACKING_ID);
+}
+
+
+const Tracking = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    ReactGA.pageview(location.pathname); // Send pageview event
+  }, [location]);
+
+  return null; // Component doesn't render anything
+};
 
   useEffect(() => {
     const loadPhylloSDK = () => {
@@ -72,6 +92,7 @@ function App() {
   return (
     <Router>
       <div className="App">
+      <Tracking />
         <Routes>
           {/* Authentication Route */}
           <Route
@@ -253,6 +274,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <UserBankDetails Image={image} />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/analytics"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <AdminAnalytics />
               </ProtectedRoute>
             }
           />
