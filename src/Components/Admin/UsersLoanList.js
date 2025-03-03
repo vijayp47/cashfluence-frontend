@@ -3,6 +3,8 @@ import Header from "../Layout/Header";
 import { useLocation,useNavigate } from "react-router-dom";
 import UsersLoanDetail from "./UsersLoanDetail";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
+
+import { FaFlag } from "react-icons/fa";
 import ComplianceChecklist from "./ComplianceChecklist";
 import InterestRateData from "./InterestRateData";
 import Loader from "../Loader";
@@ -10,19 +12,21 @@ const UsersLoanList = () => {
   const BASE_URL = process.env.REACT_APP_BASE_URL;  
   const location = useLocation();
   const { user, profileData } = location.state || {};
-  // console.log("user..." ,user)
+  console.log("user..inside." ,user)
+  const [userData, setUserData] = useState(user);
+  console.log("userData--line 25",userData);
+  const loanData = userData?.loans || [];
   const [loanMinAmount, setLoanMinAmount] = useState(500);
   const [loanMaxAmount, setLoanMaxAmount] = useState(2000);
   const [loanStatus, setLoanStatus] = useState("All");
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [showLoanDetails,setShowLoanDetails]=useState(false);
-  const [userData, setUserData] = useState(user);
+  
   const [plaidUser,setPlaidUserData]= useState(null);
   const [loader, setLoader] = useState(true);
   const navigate = useNavigate();
   // const loanData = user?.loans || []
 
-  const loanData = userData?.loans || [];
 
   console.log("loanData------------",loanData);
   
@@ -111,13 +115,24 @@ const UsersLoanList = () => {
   
 
   const filteredLoans = loanData.filter((loan) => {
+    console.log("loan999999999",loan);
+    
     const withinRange =
       loan.amount >= loanMinAmount && loan.amount <= loanMaxAmount;
     const matchesStatus = loanStatus === "All" || loan.status === loanStatus;
-    return withinRange && matchesStatus;
+    // console.log("Transaction data in loan:", loan.transactions); 
+    // const hasFineEmailSent = loan.transactions?.some(tran => tran.fine_email_sent === true)
+    
+
+    const loansWithFineEmailSent = loanData.filter(loan => 
+      loan.transactions.some(transaction => transaction.fine_email_sent === true)
+  );
+    
+    return withinRange && matchesStatus ;
   });
 
   const loanDetailRef = useRef(null);
+ 
 
   // Handle changes in the min range
   const handleMinChange = (e) => {
@@ -146,8 +161,15 @@ const UsersLoanList = () => {
     }
   };
 
-  console.log("plaidUser-------------------",plaidUser);
+  console.log("selectedLoan-------------------",selectedLoan);
   
+console.log("filteredLoans888888888888888888",filteredLoans);
+
+const hasFineEmailSent = (loan) => {
+  return loan.transactions.some(transaction => transaction.fine_email_sent === true);
+};
+
+
 
   return (
     <div className="font-sans flex flex-col min-h-screen">
@@ -231,9 +253,15 @@ const UsersLoanList = () => {
                     } border font-sans border-[#C4C4C4] p-5 rounded-lg shadow-md flex justify-between items-center cursor-pointer`}
                   >
                     <div className="font-sans text-left w-[90%]">
+                 
+
                       <h3 className="font-sans text-[25px] font-bold text-black">
-                        Loan ID: {loan.id}
+                        Loan ID: {loan.id}    
+                        
                       </h3>
+                      {hasFineEmailSent(loan) && (
+                <FaFlag color="red" size={24} title="Fine Email Sent" />
+              )}
                       <p className="font-sans text-[#646464] mt-1">
                         Amount: ${loan.amount}
                       </p>

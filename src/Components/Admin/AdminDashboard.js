@@ -7,6 +7,7 @@ import { debounce } from "lodash"; // Install lodash for debouncing
 import { CiMenuKebab } from "react-icons/ci";
 import jsPDF from "jspdf";
 import { saveAs } from "file-saver";
+import { FaFlag } from "react-icons/fa";
 import "jspdf-autotable";
 import Logo from "../../assets/images/logo.png";
 
@@ -47,47 +48,6 @@ const AdminDashboard = () => {
   }, []);
 
   console.log("users..", users);
-  // const fetchUsers = async (page) => {
-  //   setLoading(true);
-  //   try {
-  //     const token = localStorage.getItem("adminToken");
-
-  //     // Construct query parameters with all active filters
-  //     const queryParams = new URLSearchParams({
-  //       page,
-  //       limit: 10,
-  //       searchQuery: searchQuery.trim() || "", // Includes Loan ID or user search query
-  //       loanStatus: loanStatus !== "All" ? loanStatus : "",
-  //       loanMinAmount,
-  //       loanMaxAmount,
-  //       accountNumber: accountNumber.trim(),
-  //       institutionName: institutionName.trim(),
-  //       accountName: accountName.trim(),
-  //     });
-
-  //     const response = await fetch(
-  //       `${BASE_URL}/admin/users?${queryParams.toString()}`,
-  //       {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     const data = await response.json();
-  //     if (data.success) {
-  //       setUsers(data.users);
-  //       setTotalPages(data.totalPages);
-  //     } else {
-  //       console.error("Failed to fetch users:", data.message);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching users:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const fetchUsers = async (page) => {
     setLoading(true);
@@ -170,10 +130,7 @@ const AdminDashboard = () => {
     accountName,
   ]);
 
-  useEffect(() => {
-    fetchProfileData();
-  }, []);
-
+ 
   const fetchFilterData = useCallback(async () => {
     setLoading(true);
     try {
@@ -212,42 +169,6 @@ const AdminDashboard = () => {
     setPage(1);
   };
 
-  // const fetchAllUsers = async (page) => {
-  //   setLoading(true);
-  //   try {
-  //     const token = localStorage.getItem("adminToken");
-  //     const queryParams = new URLSearchParams({
-  //       page,
-  //       limit: 10,
-  //     });
-
-  //     // Add searchQuery if it exists
-  //     if (searchQuery) queryParams.append("searchQuery", searchQuery);
-
-  //     const response = await fetch(
-  //       `${BASE_URL}/admin/allusers?${queryParams.toString()}`,
-  //       {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     const data = await response.json();
-
-  //     if (data.success) {
-  //       setUsers(data.users);
-  //       setTotalPages(data.totalPages);
-  //     } else {
-  //       console.error("Failed to fetch users:", data.message);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching users:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const fetchAllUsers = async (page, query) => {
     setLoading(true);
@@ -309,116 +230,6 @@ const AdminDashboard = () => {
     setPage(1);
   };
 
-  //   const downloadCSV = () => {
-  //     // Define CSV Header
-  //     const dataToDownload = applyFilter ? filteredUsers : users;
-  //     const headers = [
-  //       "User Name",
-  //       "Email",
-  //       "Verified Status",
-  //       "Number of Loans",
-  //     ].join(",");
-
-  //     // Prepare rows for CSV content
-  //     const rows = dataToDownload.map((user) => {
-  //       const fullName = `${user.firstName} ${user.lastName}`;
-  //       const email = user.email || "N/A";
-  //       const isVerified = user.isVerified ? "Verified" : "Not Verified";
-  //       const numLoans = user.loans ? user.loans.length : 0;
-
-  //       return [fullName, email, isVerified, numLoans].join(",");
-  //     });
-
-  //      //Combine headers and rows
-  //     const csvContent = [headers, ...rows].join("\n");
-
-  //     // Create a Blob and trigger download
-  //     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  //     saveAs(blob, "Users_Summary_Report.csv");
-  //   };
-
-  //  const downloadPDF = () => {
-  //     const dataToDownload = applyFilter ? filteredUsers : users;
-  //     const doc = new jsPDF();
-
-  //     const img = new Image();
-  //     img.src = Logo;
-
-  //     const pageWidth = doc.internal.pageSize.getWidth();
-
-  //     doc.addImage(img, 'PNG',pageWidth / 2 - 25, 10, 50, 20);
-  //     doc.setFontSize(18);
-  //     doc.setTextColor("#333333");
-  //     doc.text("CashFluence", pageWidth / 2, 40, { align: "center" });
-
-  //     // Add subtitle
-  //     doc.setFontSize(12);
-  //     doc.setTextColor("#666666");
-  //     doc.text("User Loan Details Report", pageWidth / 2, 50, { align: "center" });
-
-  //     // Initialize Y-axis for positioning
-  //     let yPosition = 60;
-
-  //     dataToDownload.forEach((user, index) => {
-  //       const sortedLoans = user.loans
-  //     ? user.loans.sort((a, b) => a.id - b.id)
-  //     : [];
-  //       // Add user section
-  //       doc.setFontSize(12);
-  //       doc.setTextColor("#000000");
-  //       doc.text(`${index + 1}. Name: ${user.firstName} ${user.lastName}`, 10, yPosition);
-  //       doc.setFontSize(10);
-  //       doc.setTextColor("#555555");
-  //       doc.text(`Email: ${user.email}`, 15, yPosition + 5);
-
-  //       if (sortedLoans.length > 0) {
-  //         // Add loans table
-  //         doc.autoTable({
-  //           startY: yPosition + 10,
-  //           head: [["Loan ID", "Status", "Amount", "Created At"]],
-  //           body: sortedLoans.map((loan) => [
-  //             loan.id,
-  //             loan.status,
-  //             `$${loan.amount}`,
-  //             loan?.createdAt ? new Date(loan.createdAt).toLocaleDateString(): "N/A",
-  //           ]),
-  //           theme: "grid",
-  //           styles: {
-  //             fontSize: 10,
-  //             textColor: "#333333",
-  //             lineColor: "#dddddd",
-  //           },
-  //           headStyles: {
-  //             fillColor: "#5EB66E",
-  //             textColor: "#ffffff",
-  //           },
-  //           alternateRowStyles: {
-  //             fillColor: "#f8f9fa",
-  //           },
-  //         });
-
-  //         yPosition = doc.lastAutoTable.finalY + 10;  //Adjust Y position
-  //       } else {
-  //          // no loans, show message
-  //         doc.setFontSize(10);
-  //         doc.setTextColor("#ff0000");
-  //         doc.text("No loans available.", 15, yPosition + 10);
-  //         yPosition += 20;
-  //       }
-
-  //        //Add space between users
-  //       yPosition += 10;
-
-  //       // Check if the page needs to be added
-  //       if (yPosition > doc.internal.pageSize.getHeight() - 20) {
-  //         doc.addPage();
-  //         yPosition = 20; // Reset Y position on a new page
-  //       }
-  //     });
-
-  //      //Download the PDF
-  //     doc.save("Cashfluence_Loans.pdf");
-  //   };
 
   const downloadCSV = () => {
     const dataToDownload = applyFilter ? filteredUsers : users;
@@ -783,12 +594,26 @@ const AdminDashboard = () => {
   const handleCardClick = (user, userId) => {
     navigate(`/admin/userloanlist/${userId}`, { state: { user, profileData } });
   };
-  const renderUserCard = (user) => (
+
+const renderUserCard = (user) => {
+  // Check if any loan has a transaction with fine_email_sent: true
+  const hasFineEmailSent = user.loans?.some((loan) =>
+    loan.transactions?.some((transaction) => transaction.fine_email_sent === true)
+  );
+
+  return (
     <div
       key={user.id}
-      className="bg-[#F8F8F8] p-5 rounded-lg shadow border border-[#E5E5E5] min-h-[150px] cursor-pointer"
+      className="relative bg-[#F8F8F8] p-5 rounded-lg shadow border border-[#E5E5E5] min-h-[150px] cursor-pointer"
       onClick={() => handleCardClick(user, user.id)}
     >
+       {/* Top-right Flag Icon if Fine Email Sent */}
+       {hasFineEmailSent && (
+          <div className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full flex items-center justify-center shadow-md">
+          <FaFlag size={18} />
+          </div>
+        )}
+
       <div className="font-sans flex justify-between">
         <div className="flex flex-col text-left">
           <h3 className="font-sans text-lg font-semibold mb-1">
@@ -800,17 +625,19 @@ const AdminDashboard = () => {
           </p>
         </div>
         <div className="flex flex-col space-y-2 justify-end md:mt-0 !mt-[75px] md:ml-0 -ml-[89px]">
-          <span className="font-sans border-2 border-black font-bold text-black py-1  px-2 rounded-lg">
+          <span className="font-sans border-2 border-black font-bold text-black py-1 px-2 rounded-lg">
             {user?.loans && user.loans.length > 0
               ? user.loans.some((loan) => loan.status === "Pending")
-                ? "Pending Loans" // Show this if there's any loan with status "Pending"
-                : "No pending Loans" // Show this if there are loans with status "Approved" or "Rejected"
+                ? "Pending Loans"
+                : "No Pending Loans"
               : "No Loans"}
           </span>
         </div>
       </div>
     </div>
   );
+};
+
 
   const uniqueValues = (arr, key) => {
     return [...new Map(arr.map((item) => [item[key], item])).values()];
@@ -820,6 +647,7 @@ const AdminDashboard = () => {
     setSearchQuery(query);
     setPage(1); // Reset to page 1 when a new search is performed
   };
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -842,18 +670,6 @@ const AdminDashboard = () => {
               </h2>
 
               <div className="flex items-center w-full sm:w-1/5 justify-between sm:justify-center  mb-3">
-                {/* <div className="flex flex-col items-center  ">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={applyFilter}
-                      onChange={handleFilterToggle}
-                      className="mr-2 w-5 h-5"
-                    />
-                    Enable Filters
-                  </label>
-                </div> */}
-
                 <div className="ml-[13rem]">
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
