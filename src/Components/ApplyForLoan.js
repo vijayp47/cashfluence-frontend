@@ -283,7 +283,7 @@ const plaidStateData = async () => {
 
     // Calculate weighted scores with proper checks
     const weightedPaymentHistory =
-      (paymentHistory?.riskScore || 0) * weights.paymentHistory;
+      (riskScore || 0) * weights.paymentHistory;
     const weightedInfluencerScore =
       ((influencerScore || 0) / 10) * weights.influencerScore;
     // const weightedExternalFactors =
@@ -431,8 +431,6 @@ const plaidStateData = async () => {
   if (loading) {
     <Loader />;
   }
-
-
 
 
   return (

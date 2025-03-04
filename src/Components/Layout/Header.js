@@ -282,7 +282,7 @@ const Header = ({
         )}
 
         <div className="flex items-center">
-          <div className="text-right  hidden sm:block">
+          <div className="text-right mr-1 hidden sm:block">
             <p className="text-[0.96rem] text-gray-600">
               Hello, {profileData?.firstName} {profileData?.lastName}
             </p>
@@ -291,27 +291,25 @@ const Header = ({
             </p>
           </div>
 
-          {/* {/ Profile Image + Dropdown /} */}
+          {/* Profile Image + Dropdown */}
           <div
             ref={dropdownRef}
-            className="relative flex items-center  cursor-pointer"
+            className="relative flex items-center gap-2 cursor-pointer"
             onClick={() => setDropdownOpen(!dropdownOpen)}
           >
-            {/* {/ Profile Image /} */}
+            {/* Profile Image */}
             {profileData?.image ? (
               <img
                 src={profileData?.image}
                 alt="Profile"
-                style={{ width: 80, height: 50, borderRadius: "50%" }}
+                className="w-12 h-12 rounded-full object-cover"
               />
             ) : (
               <Avatar
                 sx={{
                   width: 50,
-                  marginTop: 2,
                   height: 50,
                   backgroundColor: "#C4C4C4",
-                  mb: 2,
                 }}
               >
                 {profileData?.firstName?.charAt(0)}
@@ -319,9 +317,9 @@ const Header = ({
               </Avatar>
             )}
 
-            {/* {/ Dropdown Arrow /} */}
+            {/* Dropdown Arrow */}
             <svg
-              className={`w-5 h-5 text-gray-600 transition-transform -ml-2 ${
+              className={`w-5 h-5 text-gray-600 transition-transform ${
                 dropdownOpen ? "rotate-180" : ""
               }`}
               fill="none"
@@ -330,24 +328,20 @@ const Header = ({
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19 9l-7 7-7-7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
 
-            {/* {/ Dropdown Menu /} */}
+            {/* Dropdown Menu */}
             {dropdownOpen && (
-              <div className="absolute right-0 md:mt-[9rem] mt-[14rem] md:w-[160px] w-[60vw] bg-white border rounded shadow-lg z-10 ">
-                {/* {/ Greeting and Email for Small Devices /} */}
-                <div className="sm:hidden border-b p-4">
-                  <p className="text-gray-600">
+              <div className="absolute right-0 top-full mt-2 w-[180px] max-w-[90vw] bg-white border rounded shadow-lg z-10">
+                {/* Greeting and Email for Small Devices */}
+                <div className="sm:hidden border-b p-4 break-words">
+                  <p className="text-gray-600 truncate">
                     {profileData?.firstName
                       ? `Hello, ${profileData?.firstName} ${profileData?.lastName}`
-                      : null}
+                      : "Hello, Admin"}
                   </p>
-                  <p className="font-bold text-gray-800 mt-2">
+                  <p className="font-bold text-gray-800 mt-2 truncate">
                     {profileData?.email}
                   </p>
                 </div>

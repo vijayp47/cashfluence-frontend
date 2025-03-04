@@ -10,6 +10,7 @@ import { saveAs } from "file-saver";
 import { FaFlag } from "react-icons/fa";
 import "jspdf-autotable";
 import Logo from "../../assets/images/logo.png";
+import Overdue from "../../assets/images/overdue.png";
 
 const AdminDashboard = () => {
   const BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -595,48 +596,55 @@ const AdminDashboard = () => {
     navigate(`/admin/userloanlist/${userId}`, { state: { user, profileData } });
   };
 
-const renderUserCard = (user) => {
-  // Check if any loan has a transaction with fine_email_sent: true
-  const hasFineEmailSent = user.loans?.some((loan) =>
-    loan.transactions?.some((transaction) => transaction.fine_email_sent === true)
-  );
-
-  return (
-    <div
-      key={user.id}
-      className="relative bg-[#F8F8F8] p-5 rounded-lg shadow border border-[#E5E5E5] min-h-[150px] cursor-pointer"
-      onClick={() => handleCardClick(user, user.id)}
-    >
-       {/* Top-right Flag Icon if Fine Email Sent */}
-       {hasFineEmailSent && (
-          <div className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full flex items-center justify-center shadow-md">
-          <FaFlag size={18} />
+  const renderUserCard = (user) => {
+    // Check if any loan has a transaction with fine_email_sent: true
+    const hasFineEmailSent = user.loans?.some((loan) =>
+      loan.transactions?.some((transaction) => transaction.fine_email_sent === true)
+    );
+  
+    return (
+      <div
+        key={user.id}
+        className="relative bg-[#F8F8F8] p-5 rounded-lg shadow border border-[#E5E5E5] min-h-[150px] cursor-pointer"
+        onClick={() => handleCardClick(user, user.id)}
+      >
+         {/* Top-right Flag Icon if Fine Email Sent */}
+         {/* {hasFineEmailSent && (
+           
+          )} */}
+  
+  {
+    user?.loans?.some(loan => loan?.overdueStatus === "Overdue") && (
+      <div className="absolute top-2 right-2 flex items-center justify-center shadow-md">
+              <img src={Overdue} alt="Past Date Due"  className="w-20 h-10 mt-4" />
+            </div>
+    )
+  }
+  
+  
+    <div className="font-sans flex justify-between">
+          <div className="flex flex-col text-left">
+            <h3 className="font-sans text-lg font-semibold mb-1">
+              {user.firstName} {user.lastName}
+            </h3>
+            <p className="font-sans text-gray-600 mb-1">{user.email}</p>
+            <p className="font-sans text-gray-800 mb-1">
+              Loans: {user.loans.length}
+            </p>
           </div>
-        )}
-
-      <div className="font-sans flex justify-between">
-        <div className="flex flex-col text-left">
-          <h3 className="font-sans text-lg font-semibold mb-1">
-            {user.firstName} {user.lastName}
-          </h3>
-          <p className="font-sans text-gray-600 mb-1">{user.email}</p>
-          <p className="font-sans text-gray-800 mb-1">
-            Loans: {user.loans.length}
-          </p>
-        </div>
-        <div className="flex flex-col space-y-2 justify-end md:mt-0 !mt-[75px] md:ml-0 -ml-[89px]">
-          <span className="font-sans border-2 border-black font-bold text-black py-1 px-2 rounded-lg">
-            {user?.loans && user.loans.length > 0
-              ? user.loans.some((loan) => loan.status === "Pending")
-                ? "Pending Loans"
-                : "No Pending Loans"
-              : "No Loans"}
-          </span>
+          <div className="flex flex-col space-y-2 justify-end md:mt-0 !mt-[75px] md:ml-0 -ml-[89px]">
+            <span className="font-sans border-2 border-black font-bold text-black py-1 px-2 rounded-lg">
+              {user?.loans && user.loans.length > 0
+                ? user.loans.some((loan) => loan.status === "Pending")
+                  ? "Pending Loans"
+                  : "No Pending Loans"
+                : "No Loans"}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 
   const uniqueValues = (arr, key) => {
@@ -664,39 +672,41 @@ const renderUserCard = (user) => {
         ) : (
           // Display loader while data is loading
           <div className="w-full md:w-full bg-[#ffff] md:p-6 p-5">
-            <div className="flex flex-col sm:flex-row w-full justify-between items-center">
+            <div className="mx-3 flex flex-row w-full justify-between items-center">
+             {/* Title */}
               <h2 className="text-left text-xl md:text-[24px] font-bold font-sans">
                 User Management
               </h2>
 
-              <div className="flex items-center w-full sm:w-1/5 justify-between sm:justify-center  mb-3">
-                <div className="ml-[13rem]">
-                  <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="relative p-1 bg-gray-200 rounded-full"
-                  >
-                    <CiMenuKebab size={30} />
-                  </button>
+              {/* Button Section */}
+              <div className="mr-3 flex items-center justify-end sm:justify-center w-auto">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="relative p-1 bg-gray-200 rounded-full"
+                >
+                  <CiMenuKebab size={30} />
+                </button>
 
-                  {dropdownOpen && (
-                    <div className="absolute right-5 top-10 md:mt-[8rem] mt-[4rem] md:w-[160px] w-[60vw] bg-white border rounded shadow-lg z-10 ">
-                      <button
-                        onClick={downloadPDF}
-                        className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
-                      >
-                        Export PDF
-                      </button>
-                      <button
-                        onClick={downloadCSV}
-                        className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
-                      >
-                        Export CSV
-                      </button>
-                    </div>
-                  )}
-                </div>
+                {/* Dropdown Menu */}
+                {dropdownOpen && (
+                  <div className="absolute right-5 top-10 md:mt-[8rem] mt-[4rem] md:w-[160px] w-[60vw] bg-white border rounded shadow-lg z-10">
+                    <button
+                      onClick={downloadPDF}
+                      className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
+                    >
+                      Export PDF
+                    </button>
+                    <button
+                      onClick={downloadCSV}
+                      className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
+                    >
+                      Export CSV
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
+
 
             {applyFilter && (
               <div
@@ -712,7 +722,7 @@ const renderUserCard = (user) => {
               >
                 <div className="flex font-sans items-center justify-around mb-3 mt-3">
                   <div className="w-full">
-                    <div class="w-full overflow-x-scroll h-[40vh] sm:h-[17vh] sm:overflow-hidden flex flex-col sm:flex-row sm:flex-wrap lg:flex-row p-4 justify-between bg-white rounded-lg shadow-md space-y-6 lg:space-y-0 lg:space-x-6">
+                  <div className="w-full overflow-x-scroll h-[30vh] sm:h-[25vh] sm:overflow-hidden flex flex-wrap items-center justify-between p-4 bg-white rounded-lg shadow-md gap-x-4 gap-y-4">
                       {/* Institution Name Dropdown */}
                       <div className="w-full md:w-[20%] lg:w-[13%]">
                         <label className="block text-sm font-semibold text-gray-600 mb-2">
@@ -720,25 +730,15 @@ const renderUserCard = (user) => {
                         </label>
                         <select
                           value={institutionName}
-                          onChange={(e) =>
-                            handleFilterChange(
-                              "institutionName",
-                              e.target.value
-                            )
-                          }
+                          onChange={(e) => handleFilterChange("institutionName", e.target.value)}
                           className="w-full p-3 border text-sm border-[#C4C4C4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
                         >
                           <option value="">Select Institution</option>
-                          {uniqueValues(dropdownOptions, "institutionName").map(
-                            (option, index) => (
-                              <option
-                                key={index}
-                                value={option.institutionName}
-                              >
-                                {option.institutionName}
-                              </option>
-                            )
-                          )}
+                          {uniqueValues(dropdownOptions, "institutionName").map((option, index) => (
+                            <option key={index} value={option.institutionName}>
+                              {option.institutionName}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
@@ -749,42 +749,34 @@ const renderUserCard = (user) => {
                         </label>
                         <select
                           value={accountName}
-                          onChange={(e) =>
-                            handleFilterChange("accountName", e.target.value)
-                          }
+                          onChange={(e) => handleFilterChange("accountName", e.target.value)}
                           className="w-full p-3 border text-sm border-[#C4C4C4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
                         >
                           <option value="">Select Account Name</option>
-                          {uniqueValues(dropdownOptions, "accountName").map(
-                            (option, index) => (
-                              <option key={index} value={option.accountName}>
-                                {option.accountName}
-                              </option>
-                            )
-                          )}
+                          {uniqueValues(dropdownOptions, "accountName").map((option, index) => (
+                            <option key={index} value={option.accountName}>
+                              {option.accountName}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
                       {/* Account Number Dropdown */}
-                      <div className="w-full md:w-[20%]  lg:w-[17%]">
+                      <div className="w-full md:w-[20%] lg:w-[17%]">
                         <label className="block text-sm font-semibold text-gray-600 mb-2">
                           Account Number
                         </label>
                         <select
                           value={accountNumber}
-                          onChange={(e) =>
-                            handleFilterChange("accountNumber", e.target.value)
-                          }
+                          onChange={(e) => handleFilterChange("accountNumber", e.target.value)}
                           className="w-full p-3 border text-sm border-[#C4C4C4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
                         >
                           <option value="">Select Account Number</option>
-                          {uniqueValues(dropdownOptions, "accountNumber").map(
-                            (option, index) => (
-                              <option key={index} value={option.accountNumber}>
-                                {option.accountNumber}
-                              </option>
-                            )
-                          )}
+                          {uniqueValues(dropdownOptions, "accountNumber").map((option, index) => (
+                            <option key={index} value={option.accountNumber}>
+                              {option.accountNumber}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
@@ -795,9 +787,7 @@ const renderUserCard = (user) => {
                         </label>
                         <select
                           value={loanStatus}
-                          onChange={(e) =>
-                            handleFilterChange("loanStatus", e.target.value)
-                          }
+                          onChange={(e) => handleFilterChange("loanStatus", e.target.value)}
                           className="w-full p-3 border text-sm border-[#C4C4C4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
                         >
                           <option value="All">All</option>
@@ -831,33 +821,34 @@ const renderUserCard = (user) => {
                       </div>
 
                       {/* Clear Filters Button */}
-                      <div className="w-[20vw] h-[5vh] md:w-auto lg:w-[10%] md:mt-0 flex items-center lg:justify-end justify-center">
+                      <div className="w-full sm:w-auto flex items-center justify-end">
                         <button
                           onClick={clearFilters}
                           disabled={
-                            accountName == "" &&
-                            accountNumber == "" &&
-                            institutionName == "" &&
-                            loanStatus == "All" &&
-                            loanMaxAmount == 2000 &&
-                            loanMinAmount == 500
+                            accountName === "" &&
+                            accountNumber === "" &&
+                            institutionName === "" &&
+                            loanStatus === "All" &&
+                            loanMaxAmount === 2000 &&
+                            loanMinAmount === 500
                           }
-                          className={`w-[20vw] h-[6vh] md:w-auto lg:px-5 lg:py-3 text-sm rounded-md text-white 
-      ${
-        accountName == "" &&
-        accountNumber == "" &&
-        institutionName == "" &&
-        loanStatus == "All" &&
-        loanMaxAmount == 2000 &&
-        loanMinAmount == 500
-          ? "bg-gray-400 cursor-not-allowed"
-          : "bg-[#5EB66E] hover:bg-[#4FA75E]"
-      }`}
+                          className={`w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 text-sm font-medium rounded-md text-white transition-all duration-300 
+                            ${
+                              accountName === "" &&
+                              accountNumber === "" &&
+                              institutionName === "" &&
+                              loanStatus === "All" &&
+                              loanMaxAmount === 2000 &&
+                              loanMinAmount === 500
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-[#5EB66E] hover:bg-[#4FA75E] shadow-md"
+                            }`}
                         >
                           Clear Filters
                         </button>
                       </div>
                     </div>
+
                   </div>
                 </div>
               </div>

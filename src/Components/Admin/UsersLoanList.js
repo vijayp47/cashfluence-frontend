@@ -3,8 +3,7 @@ import Header from "../Layout/Header";
 import { useLocation,useNavigate } from "react-router-dom";
 import UsersLoanDetail from "./UsersLoanDetail";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
-
-import { FaFlag } from "react-icons/fa";
+import Overdue from "../../assets/images/overdue.png";
 import ComplianceChecklist from "./ComplianceChecklist";
 import InterestRateData from "./InterestRateData";
 import Loader from "../Loader";
@@ -12,9 +11,7 @@ const UsersLoanList = () => {
   const BASE_URL = process.env.REACT_APP_BASE_URL;  
   const location = useLocation();
   const { user, profileData } = location.state || {};
-  console.log("user..inside." ,user)
   const [userData, setUserData] = useState(user);
-  console.log("userData--line 25",userData);
   const loanData = userData?.loans || [];
   const [loanMinAmount, setLoanMinAmount] = useState(500);
   const [loanMaxAmount, setLoanMaxAmount] = useState(2000);
@@ -26,10 +23,6 @@ const UsersLoanList = () => {
   const [loader, setLoader] = useState(true);
   const navigate = useNavigate();
   // const loanData = user?.loans || []
-
-
-  console.log("loanData------------",loanData);
-  
 
   const userId = userData.id
 
@@ -249,19 +242,17 @@ const hasFineEmailSent = (loan) => {
                     key={loan.id}
                     onClick={() => handleLoanDetails(loan,loan.id)}
                     className={`${
-                      selectedLoan?.id === loan?.id ? "bg-[#EFEFEF]" : "bg-[#fff]"
-                    } border font-sans border-[#C4C4C4] p-5 rounded-lg shadow-md flex justify-between items-center cursor-pointer`}
+                      selectedLoan?.id === loan?.id ? "bg-[#EFEFEF]" : "bg-white"
+                    } border border-[#C4C4C4] p-5 rounded-lg shadow-md flex justify-between items-center cursor-pointer
+                    md:flex-col md:items-start lg:flex-row lg:items-center`} // Column on md, Row on lg & sm
                   >
                     <div className="font-sans text-left w-[90%]">
                  
 
-                      <h3 className="font-sans text-[25px] font-bold text-black">
-                        Loan ID: {loan.id}    
-                        
+                      <h3 className="text-2xl md:text-md font-bold text-black">
+                        Loan ID: {loan.id}
                       </h3>
-                      {hasFineEmailSent(loan) && (
-                <FaFlag color="red" size={24} title="Fine Email Sent" />
-              )}
+                     
                       <p className="font-sans text-[#646464] mt-1">
                         Amount: ${loan.amount}
                       </p>
@@ -270,11 +261,18 @@ const hasFineEmailSent = (loan) => {
                         {new Date(loan.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="space-y-4 flex flex-col items-center">
                   
+                    <div className="flex flex-col items-center">
+                    <>
+                      {loan?.overdueStatus === "Overdue" && (
+                        <img src={Overdue} alt="Past Date Due" className="w-26 h-10 mt-2"/>
+                      )}
+                    </>
+                      <div className="w-auto md:w-full flex md:justify-start lg:justify-end mt-2 md:mt-1 lg:mt-3">
                       <span className="font-sans border-2 border-black font-bold text-black py-1 px-4 rounded-lg">
                         {loan.status}
                       </span>
+                      </div>
                     </div>
                   </div>
                 ))}
