@@ -11,7 +11,7 @@ import CheckoutForm from '../../src/Components/CheckoutForm'
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import {updateStatusForIdentityPayment} from "../API/apiServices"
-
+import TransactionHistory from "./TransactionHistory";
 const stripePromise = loadStripe("pk_test_51PnDYCHJvnanatbhqplAFXJaRmLHiZf225u3hQ4FL3AcN5ear6ZZsggNWieJcHnf5pacaIYT3gB2k2ti0LsWOyRo00dEmBlxTO");
 
 
@@ -25,10 +25,9 @@ const ProfileKYCForm = () => {
   const [clientSecret, setClientSecret] = useState(null);
   const [hasPaidForVerification, setHasPaidForVerification] = useState(false);
   const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+
   const navigate = useNavigate();
-
-
-  console.log("hasPaidForVerification",hasPaidForVerification)
 
   useEffect(() => {
     if (!profileData) {
@@ -82,40 +81,7 @@ const ProfileKYCForm = () => {
     }
   };
 
-  const startPaymentProcess = async () => {
-    try {
-      const { data } = await axios.post(
-        `${BASE_URL}/payment/create-payment-intent`,
-        { amount: 1000, currency: "usd" },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      setClientSecret(data.clientSecret);
-      console.log("clientSecret",data.clientSecret)
-      setShowPaymentModal(true);
-      setShowPaymentPrompt(false);
-    } catch (error) {
-      toast.error("Payment initialization failed.");
-    }
-  };
 
- 
-const handlePaymentSuccess = async () => {
-  try {
-    const response = await updateStatusForIdentityPayment();
-    
-    
-    if (response?.success) {
-      toast.success("Payment successful! You can now proceed with Identity verification.");
-      setHasPaidForVerification(true);
-      setShowPaymentModal(false);
-    } else {
-      throw new Error("Failed to update payment status.");
-    }
-  } catch (error) {
-    toast.error("Failed to update payment status.");
-    console.error("Payment Status Update Error:", error);
-  }
-};
 
   const retryIdentityVerification = async () => {
     const userId = localStorage.getItem("user_id");
@@ -133,7 +99,7 @@ const handlePaymentSuccess = async () => {
       });
   
       const data = await response.json();
-      console.log("status......",data.data.status)
+    
       setUserIdvStatus(data.data.status)
   
       if (data?.message === "Identity verification retry initiated successfully") {
@@ -174,6 +140,28 @@ const handlePaymentSuccess = async () => {
     }
   };
 
+  // const orgKeywords = ['inc', 'llc', 'corp', 'co', 'company', 'foundation', 'ltd', 'plc', 'trust', 'group', 'enterprises', 'ventures', 'associates', 'partners', 'trustation'];
+  const orgKeywords = [
+    "inc", "inc.", "llc", "ltd", "ltd.", "plc", "corp", "corporation", "co", "co.",
+    "company", "organization", "organisation", "enterprise", "group", "trust",
+    "foundation", "associates", "partners", "partnership", "gmbh", "s.a.", "s.a", 
+    "sarl", "bv", "oy", "pte", "sdn bhd", "solutions", "pvt", "pvt. ltd", "private limited",
+    "ug", "ag", "sas", "sa", "srl", "sl", "nv", "ab", "ltda", "ulc"
+  ];
+  const isOrganization = (() => {
+    const Idvdata = profileData?.idvDetails; // update if actual key is different
+    const legalName = Idvdata?.regulatory_details?.search_terms?.legal_name?.toLowerCase() || '';
+    const extractedName = Idvdata?.documentary_verification?.[0]?.extracted_data?.name;
+    const extractedFullName = `${extractedName?.given_name || ''} ${extractedName?.family_name || ''}`.toLowerCase();
+    const fullName = `${Idvdata?.first_name || ''} ${Idvdata?.last_name || ''}`.toLowerCase();
+
+    const allNames = [legalName, extractedFullName, fullName];
+
+    return allNames.some(name =>
+      orgKeywords.some(keyword => name.includes(keyword))
+    );
+  })();
+
   useEffect(() => {
     fetchLinkToken();
     getIdvStatusOfUser()
@@ -207,6 +195,9 @@ const handlePaymentSuccess = async () => {
       }
 
       const data = await response.json();
+
+      console.log("data--------kycccc",data);
+      
         retryIdentityVerification()
       // toast.success("Identity verification completed successfully!");
       // if(data.message == "User already verified."){
@@ -215,7 +206,7 @@ const handlePaymentSuccess = async () => {
       
     } catch (error) {
       console.error("Error completing IDV:", error.message || error);
-      // toast.error(error.message || "Failed to complete Identity Verification.");
+      toast.error(error.message || "Failed to complete Identity Verification.");
     }
   };
 
@@ -238,7 +229,7 @@ const handlePaymentSuccess = async () => {
       },
       onExit: async (err, metadata) => {
         // retryIdentityVerification()
-        if (err) {
+        if (err && !isOrganization) {
           toast.error("Identity Verification exited prematurely.");
         }
       },
@@ -246,19 +237,30 @@ const handlePaymentSuccess = async () => {
 
     handler.open();
   };
-
   const handleStartVerification = () => {
-    
-      startLinkIDV() // Directly start IDV
+    if (isOrganization) {
+      toast.error("Organizations are not allowed to apply. Please use an individual name.");
+      return;
+    }
   
+    startLinkIDV();
   };
-
   return (
     <>
     <Elements stripe={stripePromise} options={clientSecret ? { clientSecret } : null}>
     <div className="flex justify-center min-h-screen">
       <div className="bg-white shadow-md rounded-lg w-full max-w-md h-full min-h-screen flex flex-col">
         {/* Header */}
+
+        {sessionId && (
+        <div>
+          <h3>Session Created!</h3>
+          <p>Session ID: {sessionId}</p>
+
+          {/* ✅ Pass sessionId to RegulatoryRequirements component */}
+          <TransactionHistory sessionId={sessionId} />
+        </div>
+      )}
         <div>
           <div className="font-sans flex items-center border-b bg-[#0000]">
             <button
@@ -345,29 +347,7 @@ const handlePaymentSuccess = async () => {
         </div>
       </div>
     </div>
-    {/* Payment Prompt Modal */}
-    {/* {showPaymentPrompt && (
-          <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-              <h2 className="text-xl font-semibold mb-4">Payment Required</h2>
-              <p className="mb-4 text-gray-700">You need to make a one-time payment for identity verification.</p>
-              <button className="px-4 py-2 bg-[#5EB66E] text-white rounded mb-3" onClick={startPaymentProcess}>
-                Proceed to Payment
-              </button>
-              <br/>
-              <button className="mt-1 text-red-600 font-semibold text-lg block w-full text-center" onClick={() => setShowPaymentPrompt(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-      )}
-    {clientSecret && (
-        <Elements stripe={stripePromise} options={{ clientSecret }}>
-          {showPaymentModal && (
-            <CheckoutForm onSuccess={handlePaymentSuccess} onClose={() => setShowPaymentModal(false)} />
-          )}
-        </Elements>
-      )} */}
+   
      <ToastContainer position="top-center" autoClose={2000} />
     </Elements>
     </>

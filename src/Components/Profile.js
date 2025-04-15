@@ -262,6 +262,12 @@ const Profile = ({setIsAuthenticated}) => {
             isBank
             onClick={() => navigate("/bank-details")}
           />
+
+          <MenuItem
+            icon={changePass}
+            label="Loan History"
+            onClick={() => navigate("/loan-history")}
+          />
           <MenuItem
             icon={changePass}
             label="Change Password"

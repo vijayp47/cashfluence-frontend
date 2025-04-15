@@ -22,13 +22,13 @@ const clientDisplayName = process.env.REACT_APP_CLIENT_DISPLAY_NAME;
 const environment = process.env.REACT_APP_ENVIRONMENT;
 
 const ConnectAccounts = () => {
-  const [btnLoading,setBtnLoading]= useState(false);
   const navigate = useNavigate();
   const [loadingPlatform, setLoadingPlatform] = useState(null);
   const [userId, setUserId] = useState(null);
   const [platformLoading, setPlatformLoading] = useState(false); // State for platform-related loading
   const [token, setToken] = useState();
   const [platforms, setPlatforms] = useState([]);
+  const [btnLoading,setBtnLoading]= useState(false);
   const [dataFetch, setDataFetch] = useState(false);
   const [liabilities, setLiabilities] = useState(null); // Store response
   const { profileData, fetchProfileData } = useStore();
@@ -97,7 +97,7 @@ console.log("score",score);
     };
   }, []); // Ensure an empty dependency array
 const initializePhyllo = async (platformName, workPlatformId) => {
-  setBtnLoading(true);
+setBtnLoading(true);
     if (window.PhylloConnect) {
       try {
         const config = {
@@ -141,7 +141,9 @@ const initializePhyllo = async (platformName, workPlatformId) => {
                 `Successfully fetched account data for ${platformName}.`,
                 "success"
               );
+              
             } catch (error) {
+              
               console.error("Error fetching social account data:", error);
               Swal.fire(
                 "Error",
@@ -347,7 +349,7 @@ const handleButtonClick = () => {
             disabled={platformLoading}
          
           >
-            {dataFetch || btnLoading ?  "Processing..." :  "Next"}
+           {dataFetch || btnLoading ?  "Processing..." :  "Next"}
           </button>
         </div>
       </div>

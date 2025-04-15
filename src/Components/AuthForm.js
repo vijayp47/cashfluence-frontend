@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Logo from "../assets/images/logo.png";
+import Logo from "../assets/images/logo.jpg";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
 import { userSignup, userLogin, verifyAccount } from '../API/authApi'; 
@@ -44,7 +44,27 @@ const AuthForm = ({ onLogin }) => {
           throw new Error(result.message || 'Login failed');
         }
       } else {
+        const orgKeywords = [
+          "inc", "inc.", "llc", "ltd", "ltd.", "plc", "corp", "corporation", "co", "co.",
+          "company", "organization", "organisation", "enterprise", "group", "trust",
+          "foundation", "associates", "partners", "partnership", "gmbh", "s.a.", "s.a", 
+          "sarl", "bv", "oy", "pte", "sdn bhd", "solutions", "pvt", "pvt. ltd", "private limited",
+          "ug", "ag", "sas", "sa", "srl", "sl", "nv", "ab", "ltda", "ulc"
+        ];
+        
+        const fullName = `${data.firstName} ${data.lastName}`.toLowerCase();
+        const orgRegex = new RegExp(`\\b(${orgKeywords.join("|")})\\b`, "i"); // \b ensures exact word match
+        const hasOrgKeyword = orgRegex.test(fullName);
+        
+      
+        if (hasOrgKeyword ) {
+          toast.error("Only individuals are allowed to apply. Organizations are not eligible.");
+          setIsLoading(false);
+          return;
+        }
+      
         result = await userSignup(rest); // Call the signup API
+      
         localStorage.clear();
         setEmail(rest.email); // Store email for OTP verification
         toast.success(result.message || 'Signup successful! Please verify your email.');
@@ -54,7 +74,7 @@ const AuthForm = ({ onLogin }) => {
     } catch (error) {
       toast.error(error.message || 'Something went wrong');
     } finally {
-      setIsLoading(false); // Hide loader
+      setIsLoading(false); // Hide loaderuserSignup
     }
   };
   
@@ -83,7 +103,7 @@ const AuthForm = ({ onLogin }) => {
     <div className="flex justify-center min-h-screen font-sans">
       <div className="bg-white shadow-md rounded-lg w-full max-w-md p-6 h-full min-h-screen">
         <div className="flex justify-center mb-2">
-          <img src={Logo} alt="logo" className="w-17 h-17 mt-6" />
+          <img src={Logo} alt="logo" className="logo" />
         </div>
 
         <div className="flex mb-6 relative mt-8">

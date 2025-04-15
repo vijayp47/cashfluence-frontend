@@ -16,6 +16,7 @@ const AdminDashboard = () => {
   const BASE_URL = process.env.REACT_APP_BASE_URL;
   const navigate = useNavigate();
   const [dropdownOptions, setDropdownOptions] = useState([]);
+  const [overdueStatus, setOverdueStatus] = useState("All");
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -66,6 +67,7 @@ const AdminDashboard = () => {
         accountNumber: accountNumber.trim(),
         institutionName: institutionName.trim(),
         accountName: accountName.trim(),
+        overdueStatus: overdueStatus !== "All" ? overdueStatus : "",
       });
 
       const response = await fetch(
@@ -109,6 +111,9 @@ const AdminDashboard = () => {
       case "accountName":
         setAccountName(value);
         break;
+      case "overdueStatus":
+        setOverdueStatus(value);
+        break;
     }
     setPage(1); // Reset to the first page
   };
@@ -129,9 +134,9 @@ const AdminDashboard = () => {
     accountNumber,
     institutionName,
     accountName,
+    overdueStatus,
   ]);
 
- 
   const fetchFilterData = useCallback(async () => {
     setLoading(true);
     try {
@@ -170,7 +175,6 @@ const AdminDashboard = () => {
     setPage(1);
   };
 
-
   const fetchAllUsers = async (page, query) => {
     setLoading(true);
     try {
@@ -179,6 +183,7 @@ const AdminDashboard = () => {
         page,
         limit: 10,
         ...(query && { searchQuery: query }),
+        overdueStatus: overdueStatus !== "All" ? overdueStatus : "", // ✅ Added overdueStatus
       });
 
       const response = await fetch(
@@ -205,6 +210,40 @@ const AdminDashboard = () => {
     }
   };
 
+  // const fetchAllUsers = async (page, query) => {
+  //   setLoading(true);
+  //   try {
+  //     const token = localStorage.getItem("adminToken");
+  //     const queryParams = new URLSearchParams({
+  //       page,
+  //       limit: 10,
+  //       ...(query && { searchQuery: query }),
+  //     });
+
+  //     const response = await fetch(
+  //       `${BASE_URL}/admin/allusers?${queryParams.toString()}`,
+  //       {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+  //     const data = await response.json();
+
+  //     if (data.success) {
+  //       setUsers(data.users);
+  //       setTotalPages(data.totalPages);
+  //     } else {
+  //       console.error("Failed to fetch users:", data.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching users:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleMinChange = (e) => {
     const newMin = Math.min(e.target.value, loanMaxAmount); // Ensure min is not greater than max
     setLoanMinAmount(newMin);
@@ -228,9 +267,9 @@ const AdminDashboard = () => {
     setInstitutionName("");
     setDropdownOptions([]);
     fetchFilterData();
+    setOverdueStatus("All");
     setPage(1);
   };
-
 
   const downloadCSV = () => {
     const dataToDownload = applyFilter ? filteredUsers : users;
@@ -493,6 +532,7 @@ const AdminDashboard = () => {
   const filteredUsers = users.filter((user) => {
     const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
     const searchQueryLower = searchQuery.toLowerCase();
+
     // Matches the search query in full name, email, or loan ID
     const matchesSearchQuery =
       fullName.includes(searchQueryLower) ||
@@ -502,17 +542,29 @@ const AdminDashboard = () => {
           loan.id.toString().includes(searchQueryLower)
         ));
 
-    // Matches loan status
+    // Matches overdue status (handles cases where user has no loans)
+    const matchesOverdueStatus =
+      overdueStatus === "All" ||
+      (user.loans && user.loans.length > 0
+        ? overdueStatus === "Overdue"
+          ? user.loans.some((loan) => loan.overdueStatus === "Overdue")
+          : user.loans.every((loan) => loan.overdueStatus !== "Overdue")
+        : overdueStatus !== "Overdue"); // If no loans, exclude if filtering for overdue loans
+
+    // Matches loan status (handles users without loans)
     const matchesLoanStatus =
       loanStatus === "All" ||
-      !user.loans ||
-      user.loans.some((loan) => loan.status === loanStatus);
+      (user.loans && user.loans.length > 0
+        ? user.loans.some((loan) => loan.status === loanStatus)
+        : false);
 
-    // Matches loan amount range
+    // Matches loan amount range (handles string amounts)
     const matchesLoanAmountRange =
       user.loans &&
       user.loans.some(
-        (loan) => loan.amount >= loanMinAmount && loan.amount <= loanMaxAmount
+        (loan) =>
+          parseFloat(loan.amount) >= loanMinAmount &&
+          parseFloat(loan.amount) <= loanMaxAmount
       );
 
     // Matches repayment filter
@@ -574,7 +626,8 @@ const AdminDashboard = () => {
       matchesLoanAmountRange &&
       matchesRepaymentFilter &&
       matchesInstitutionName &&
-      matchesAccountFilter
+      matchesAccountFilter &&
+      matchesOverdueStatus // ✅ Ensured this works properly now
     );
   });
 
@@ -599,30 +652,29 @@ const AdminDashboard = () => {
   const renderUserCard = (user) => {
     // Check if any loan has a transaction with fine_email_sent: true
     const hasFineEmailSent = user.loans?.some((loan) =>
-      loan.transactions?.some((transaction) => transaction.fine_email_sent === true)
+      loan.transactions?.some(
+        (transaction) => transaction.fine_email_sent === true
+      )
     );
-  
+
     return (
       <div
         key={user.id}
         className="relative bg-[#F8F8F8] p-5 rounded-lg shadow border border-[#E5E5E5] min-h-[150px] cursor-pointer"
         onClick={() => handleCardClick(user, user.id)}
       >
-         {/* Top-right Flag Icon if Fine Email Sent */}
-         {/* {hasFineEmailSent && (
+        {/* Top-right Flag Icon if Fine Email Sent */}
+        {/* {hasFineEmailSent && (
            
           )} */}
-  
-  {
-    user?.loans?.some(loan => loan?.overdueStatus === "Overdue") && (
-      <div className="absolute top-2 right-2 flex items-center justify-center shadow-md">
-              <img src={Overdue} alt="Past Date Due"  className="w-20 h-10 mt-4" />
-            </div>
-    )
-  }
-  
-  
-    <div className="font-sans flex justify-between">
+
+        {user?.loans?.some((loan) => loan?.overdueStatus === "Overdue") && (
+          <div className="absolute top-2 right-2 flex items-center justify-center shadow-md">
+            <img src={Overdue} alt="Past Date Due" className="w-20 h-10 mt-4" />
+          </div>
+        )}
+
+        <div className="font-sans flex justify-between">
           <div className="flex flex-col text-left">
             <h3 className="font-sans text-lg font-semibold mb-1">
               {user.firstName} {user.lastName}
@@ -646,7 +698,6 @@ const AdminDashboard = () => {
     );
   };
 
-
   const uniqueValues = (arr, key) => {
     return [...new Map(arr.map((item) => [item[key], item])).values()];
   };
@@ -655,7 +706,6 @@ const AdminDashboard = () => {
     setSearchQuery(query);
     setPage(1); // Reset to page 1 when a new search is performed
   };
-
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -673,7 +723,7 @@ const AdminDashboard = () => {
           // Display loader while data is loading
           <div className="w-full md:w-full bg-[#ffff] md:p-6 p-5">
             <div className="mx-3 flex flex-row w-full justify-between items-center">
-             {/* Title */}
+              {/* Title */}
               <h2 className="text-left text-xl md:text-[24px] font-bold font-sans">
                 User Management
               </h2>
@@ -707,7 +757,6 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-
             {applyFilter && (
               <div
                 ref={sectionRef}
@@ -722,7 +771,7 @@ const AdminDashboard = () => {
               >
                 <div className="flex font-sans items-center justify-around mb-3 mt-3">
                   <div className="w-full">
-                  <div className="w-full overflow-x-scroll h-[30vh] sm:h-[25vh] sm:overflow-hidden flex flex-wrap items-center justify-between p-4 bg-white rounded-lg shadow-md gap-x-4 gap-y-4">
+                    <div className="w-full overflow-x-scroll h-[30vh] sm:h-[25vh] sm:overflow-hidden flex flex-wrap items-center justify-between p-4 bg-white rounded-lg shadow-md gap-x-4 gap-y-4">
                       {/* Institution Name Dropdown */}
                       <div className="w-full md:w-[20%] lg:w-[13%]">
                         <label className="block text-sm font-semibold text-gray-600 mb-2">
@@ -730,15 +779,25 @@ const AdminDashboard = () => {
                         </label>
                         <select
                           value={institutionName}
-                          onChange={(e) => handleFilterChange("institutionName", e.target.value)}
+                          onChange={(e) =>
+                            handleFilterChange(
+                              "institutionName",
+                              e.target.value
+                            )
+                          }
                           className="w-full p-3 border text-sm border-[#C4C4C4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
                         >
                           <option value="">Select Institution</option>
-                          {uniqueValues(dropdownOptions, "institutionName").map((option, index) => (
-                            <option key={index} value={option.institutionName}>
-                              {option.institutionName}
-                            </option>
-                          ))}
+                          {uniqueValues(dropdownOptions, "institutionName").map(
+                            (option, index) => (
+                              <option
+                                key={index}
+                                value={option.institutionName}
+                              >
+                                {option.institutionName}
+                              </option>
+                            )
+                          )}
                         </select>
                       </div>
 
@@ -749,15 +808,19 @@ const AdminDashboard = () => {
                         </label>
                         <select
                           value={accountName}
-                          onChange={(e) => handleFilterChange("accountName", e.target.value)}
+                          onChange={(e) =>
+                            handleFilterChange("accountName", e.target.value)
+                          }
                           className="w-full p-3 border text-sm border-[#C4C4C4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
                         >
                           <option value="">Select Account Name</option>
-                          {uniqueValues(dropdownOptions, "accountName").map((option, index) => (
-                            <option key={index} value={option.accountName}>
-                              {option.accountName}
-                            </option>
-                          ))}
+                          {uniqueValues(dropdownOptions, "accountName").map(
+                            (option, index) => (
+                              <option key={index} value={option.accountName}>
+                                {option.accountName}
+                              </option>
+                            )
+                          )}
                         </select>
                       </div>
 
@@ -768,15 +831,19 @@ const AdminDashboard = () => {
                         </label>
                         <select
                           value={accountNumber}
-                          onChange={(e) => handleFilterChange("accountNumber", e.target.value)}
+                          onChange={(e) =>
+                            handleFilterChange("accountNumber", e.target.value)
+                          }
                           className="w-full p-3 border text-sm border-[#C4C4C4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
                         >
                           <option value="">Select Account Number</option>
-                          {uniqueValues(dropdownOptions, "accountNumber").map((option, index) => (
-                            <option key={index} value={option.accountNumber}>
-                              {option.accountNumber}
-                            </option>
-                          ))}
+                          {uniqueValues(dropdownOptions, "accountNumber").map(
+                            (option, index) => (
+                              <option key={index} value={option.accountNumber}>
+                                {option.accountNumber}
+                              </option>
+                            )
+                          )}
                         </select>
                       </div>
 
@@ -787,7 +854,9 @@ const AdminDashboard = () => {
                         </label>
                         <select
                           value={loanStatus}
-                          onChange={(e) => handleFilterChange("loanStatus", e.target.value)}
+                          onChange={(e) =>
+                            handleFilterChange("loanStatus", e.target.value)
+                          }
                           className="w-full p-3 border text-sm border-[#C4C4C4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
                         >
                           <option value="All">All</option>
@@ -797,9 +866,25 @@ const AdminDashboard = () => {
                         </select>
                       </div>
 
+                      <div className="w-full md:w-[15%] lg:w-[10%]">
+                        <label className="block text-sm font-semibold text-gray-600 mb-2">
+                          Overdue Status
+                        </label>
+                        <select
+                          value={overdueStatus}
+                          onChange={(e) =>
+                            handleFilterChange("overdueStatus", e.target.value)
+                          }
+                          className="w-full p-3 border text-sm border-[#C4C4C4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
+                        >
+                          <option value="All">All</option>
+                          <option value="Overdue">Overdue</option>
+                        </select>
+                      </div>
+
                       {/* Loan Amount Range */}
                       <div className="w-full sm:w-1/5">
-                        <label className="block text-sm font-semibold text-gray-600 mb-2">
+                        <label className="block text-sm font-semibold text-gray-600 lg:mt-0 ">
                           Loan Amount Range: ${loanMinAmount} - ${loanMaxAmount}
                         </label>
                         <input
@@ -821,7 +906,7 @@ const AdminDashboard = () => {
                       </div>
 
                       {/* Clear Filters Button */}
-                      <div className="w-full sm:w-auto flex items-center justify-end">
+                      <div className="w-full sm:w-auto flex items-center justify-end ml-auto">
                         <button
                           onClick={clearFilters}
                           disabled={
@@ -830,34 +915,52 @@ const AdminDashboard = () => {
                             institutionName === "" &&
                             loanStatus === "All" &&
                             loanMaxAmount === 2000 &&
-                            loanMinAmount === 500
+                            loanMinAmount === 500 &&
+                            overdueStatus === "All"
                           }
                           className={`w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 text-sm font-medium rounded-md text-white transition-all duration-300 
-                            ${
-                              accountName === "" &&
-                              accountNumber === "" &&
-                              institutionName === "" &&
-                              loanStatus === "All" &&
-                              loanMaxAmount === 2000 &&
-                              loanMinAmount === 500
-                                ? "bg-gray-400 cursor-not-allowed"
-                                : "bg-[#5EB66E] hover:bg-[#4FA75E] shadow-md"
-                            }`}
+      ${
+        accountName === "" &&
+        accountNumber === "" &&
+        institutionName === "" &&
+        loanStatus === "All" &&
+        loanMaxAmount === 2000 &&
+        loanMinAmount === 500 &&
+        overdueStatus === "All"
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-[#5EB66E] hover:bg-[#4FA75E] shadow-md"
+      }`}
                         >
                           Clear Filters
                         </button>
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:mt-3 mt-5">
               {applyFilter
                 ? (filteredUsers || []).map((user) => renderUserCard(user))
                 : (filteredAllUsers || []).map((user) => renderUserCard(user))}
             </div>
+            {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:mt-3 mt-5">
+  {applyFilter
+    ? (filteredUsers || [])
+        .sort((a, b) => {
+          const aHasOverdue = a.loans?.some(loan => loan.overdueStatus === "Overdue");
+          const bHasOverdue = b.loans?.some(loan => loan.overdueStatus === "Overdue");
+          return bHasOverdue - aHasOverdue; // Sort users with overdue loans first
+        })
+        .map((user) => renderUserCard(user))
+    : (filteredAllUsers || [])
+        .sort((a, b) => {
+          const aHasOverdue = a.loans?.some(loan => loan.overdueStatus === "Overdue");
+          const bHasOverdue = b.loans?.some(loan => loan.overdueStatus === "Overdue");
+          return bHasOverdue - aHasOverdue; // Sort users with overdue loans first
+        })
+        .map((user) => renderUserCard(user))}
+</div> */}
             <div
               className={`flex items-center justify-center mt-6 ${
                 (!loading && applyFilter && filteredUsers.length === 0) ||

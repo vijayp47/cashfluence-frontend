@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { BiLogOutCircle } from "react-icons/bi";
 import { FaUser } from "react-icons/fa";
-import { useLocation } from "react-router-dom";
 import axios from 'axios';
-import useRiskStore from "./store/useRiskStore";
 import { Elements, useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { ToastContainer, toast } from 'react-toastify';
 import CheckoutForm from '../../src/Components/CheckoutForm';
@@ -59,27 +56,14 @@ const ApplyForLoan = () => {
    
     const [error, setError] = useState(null);
   
-    useEffect(() => {
-      const getLastLogin = async () => {
-        try {
-          const lastLogin = await fetchLastLoginAt();
-          setLastLoginAt(lastLogin);
-        } catch (err) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      getLastLogin();
-    }, []);
+ 
   
    
     const startPaymentProcess = async () => {
       try {
         const { data } = await axios.post(
           `${BASE_URL}/payment/create-payment-intent`,
-          { amount: 80, currency: "usd" },
+          { amount: 1000, currency: "usd" },
           { headers: { "Content-Type": "application/json" } }
         );
         setClientSecret(data.clientSecret);
@@ -284,6 +268,8 @@ const plaidStateData = async () => {
     // Calculate weighted scores with proper checks
     const weightedPaymentHistory =
       (riskScore || 0) * weights.paymentHistory;
+
+
     const weightedInfluencerScore =
       ((influencerScore || 0) / 10) * weights.influencerScore;
     // const weightedExternalFactors =
@@ -370,16 +356,7 @@ const plaidStateData = async () => {
               accountSubtype: selectedFromAccount.subtype,
             },
             lastLoginAt:lastLoginAt
-            // toAccount: {
-            //   institutionId: selectedInstitutionTo.institution_id, 
-            //   institutionName: selectedInstitutionTo.institution_name,
-            //   accountId: selectedToAccount.accountId, 
-            //   accountName: selectedToAccount.name,
-            //   accountNumber:selectedToAccount.mask,
-            //   accountType: selectedToAccount.type,
-            //   accountSubtype: selectedToAccount.subtype,
-            
-            // },
+           
           }),
         });
   
@@ -431,6 +408,8 @@ const plaidStateData = async () => {
   if (loading) {
     <Loader />;
   }
+
+
 
 
   return (
@@ -615,35 +594,7 @@ const plaidStateData = async () => {
        
       </select>
       {errors.fromAccount && <p className="text-red-500">{errors.fromAccount}</p>}
-      {/* To Account */}
-      {/* <div className="mt-6">
-        <label
-          htmlFor="toAccount"
-          className="mb-3 block text-[16px] text-[#8F959E] font-sans text-base leading-[21.82px] text-left"
-        >
-          Repayment Account
-        </label>
-
-        <select
-          id="toAccount"
-          className="font-sans w-full px-3 py-2 border border-[#E5E5E5] rounded-md focus:outline-none focus:ring-2 focus:ring-gray-800"
-          onChange={(e) => handleSelectionChange(e.target.value, 'to')}
-          value={
-            selectedToAccount && selectedInstitutionTo
-              ? `${selectedInstitutionTo.institution_id}-${selectedToAccount.accountId}`
-              : ""  // Set the selected option's value to institutionId-accountId
-          }
-        >
-          <option value="">Select Account</option>
-          {accountData?.map((institution) => (
-            <optgroup key={institution.institution_id} label={institution.institution_name}>
-              {generateDropdownOptions(institution)}
-            </optgroup>
-          ))}
-        </select>
-        {errors.toAccount && <p className="text-red-500">{errors.toAccount}</p>}
-
-      </div> */}
+      
     </div>
 
 
@@ -717,7 +668,7 @@ const plaidStateData = async () => {
     {clientSecret && (
         <Elements stripe={stripePromise} options={{ clientSecret }}>
           {showPaymentModal && (
-            <CheckoutForm onSuccess={handlePaymentSuccess} onClose={() => setShowPaymentModal(false)} clientSecret={clientSecret}/>
+            <CheckoutForm onSuccess={handlePaymentSuccess} onClose={() => setShowPaymentModal(false)} />
           )}
         </Elements>
       )}

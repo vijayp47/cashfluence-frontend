@@ -19,3 +19,6 @@ code {
 html, body {
   overflow: auto !important; /* Ensure scrolling is allowed */
 }
+.logo{
+  height: 100px;
+}

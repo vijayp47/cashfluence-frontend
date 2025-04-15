@@ -343,120 +343,31 @@ console.log("profileData",profileData);
               <div className="bg-[#FCFCFC] w-full p-4 mb-4 rounded-lg">
                 {/* From Account Section */}
                 <h3 className="font-sans text-[18px] text-[#383838] font-bold mb-4">
-                  Loan Disbursement Account Details :
+                  Loan Disbursement Account Details:
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Institution Name:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.fromAccount?.institutionName || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Account Name:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.fromAccount?.accountName || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Account Type:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.fromAccount?.accountType || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Account Subtype:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.fromAccount?.accountSubtype || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Institution ID:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.fromAccount?.institutionId || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Account Number:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.fromAccount?.accountNumber || "N/A"}
-                    </span>
-                  </div>
+                  {[
+                    { label: "Institution Name:", value: selectedLoan?.fromAccount?.institutionName || "N/A" },
+                    { label: "Account Name:", value: selectedLoan?.fromAccount?.accountName || "N/A" },
+                    { label: "Account Type:", value: selectedLoan?.fromAccount?.accountType || "N/A" },
+                    { label: "Account Subtype:", value: selectedLoan?.fromAccount?.accountSubtype || "N/A" },
+                    { label: "Institution ID:", value: selectedLoan?.fromAccount?.institutionId || "N/A" },
+                    { label: "Account Number:", value: selectedLoan?.fromAccount?.accountNumber || "N/A" }
+                  ].map((item, index) => (
+                    <div key={index} className="flex flex-row sm:flex-col justify-between sm:justify-start">
+                      <span className="font-sans font-normal text-[16px] text-[#646464]">
+                        {item.label}
+                      </span>
+                      <span className="font-sans font-semibold text-[18px] text-[#383838] break-words ml-3 sm:ml-0">
+                        {item.value}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-   {/* <div className="bg-[#FCFCFC] w-full p-4 mb-4 rounded-lg">
-             
-                <h3 className="font-sans text-[18px] text-[#383838] font-bold mb-4">
-                  Repayment Account :
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Institution Name:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.toAccount?.institutionName || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Account Name:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.toAccount?.accountName || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Account Type:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.toAccount?.accountType || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Account Subtype:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.toAccount?.accountSubtype || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Institution ID:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.toAccount?.institutionId || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-sans font-normal text-[16px] text-[#646464]">
-                      Account Number:
-                    </span>
-                    <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                      {selectedLoan?.toAccount?.accountNumber || "N/A"}
-                    </span>
-                  </div>
-                </div>
-              </div> */}
-          
-            </div>
-         
-            {/* Amount detail */}
+            </div>        
 
+            {/* Amount detail */}
             <div className="bg-white p-6 rounded-lg shadow border border-[#C4C4C4]">
               <h2 className="text-[24px] font-sans text-[#383838] font-extrabold mb-4 text-left">
                 Amount Details
@@ -529,7 +440,7 @@ console.log("profileData",profileData);
               </div>
             </div>
           </div>
-          <div className="mt-6 bg-white p-6 rounded-lg w-full md:w-[65%] shadow border border-[#C4C4C4] ">
+          <div className="mt-6 bg-white p-6 rounded-lg w-full lg:w-[55%] shadow border border-[#C4C4C4] ">
             <h2 className="font-sans text-[24px] text-[#383838] font-extrabold mb-4 text-left">
               Repayment History
             </h2>

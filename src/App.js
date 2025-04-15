@@ -129,7 +129,7 @@ const Tracking = () => {
           <Route path="/plaid-link" element={<PlaidLink />} />
 
           <Route
-            path="/transaction-history"
+            path="/loan-history"
             element={
               <ProtectedRoute>
                 <TransactionHistory Image={image} />
@@ -152,14 +152,7 @@ const Tracking = () => {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/loandetail"
-            element={
-              <ProtectedRoute>
-                <LoanDetailHome />
-              </ProtectedRoute>
-            }
-          />
+
 
           {/* Verification In Progress Route */}
           <Route
@@ -278,14 +271,14 @@ const Tracking = () => {
             }
           />
 
-          <Route
+          {/* <Route
             path="/admin/analytics"
             element={
               <ProtectedRoute adminOnly={true}>
                 <AdminAnalytics />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
           <Route
             path="/admin/userloanlist/:id"
@@ -306,3 +299,4 @@ const Tracking = () => {
 }
 
 export default App;
+

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { ToastContainer, toast } from 'react-toastify';
 import { sendAdminResetPasswordEmail } from '../../API/authApi'; // API to send password reset email
-import Logo from "../../assets/images/logo.png";
+import Logo from "../../assets/images/logo.jpg";
 const ForgotPasswordForm = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +24,7 @@ const ForgotPasswordForm = () => {
        
       <div className="bg-white shadow-md rounded-lg w-full max-w-md p-6">
       <div className="flex justify-center mb-2">
-          <img src={Logo} alt="logo" className="w-17 h-17 mt-6" />
+          <img src={Logo} alt="logo" className="logo" />
         </div>
         <h2 className="text-xl mb-4 text-center">Forgot Password?</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

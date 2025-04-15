@@ -318,7 +318,9 @@ const renderAntiFraudDetails = (antiFraudDetails) => {
     );
   };
   
-const renderRegulatoryDetails = (regulatoryDetails) => {
+  const renderRegulatoryDetails = (regulatoryDetails) => {
+    console.log("regulatoryDetails", regulatoryDetails);
+  
     if (!regulatoryDetails) {
       return (
         <div className="p-6 bg-gray-50 rounded-lg shadow-lg w-[80%]">
@@ -327,17 +329,45 @@ const renderRegulatoryDetails = (regulatoryDetails) => {
       );
     }
   
-    // Render the regulatory details if available
+    const { 
+      status, 
+      client_user_id, 
+      id, 
+      request_id, 
+      search_terms, 
+      audit_trail 
+    } = regulatoryDetails;
+  
     return (
       <div className="space-y-6 p-4 bg-gray-50 rounded-lg shadow-lg w-[80%]">
         <h3 className="font-bold text-lg text-gray-900 mb-4">Regulatory Details</h3>
         <div className="bg-white p-4 rounded-lg shadow">
-          <p>No data available for Regulatory Requirements.</p>
+          <p><strong>Status:</strong> {status || "N/A"}</p>
+          <p><strong>Client User ID:</strong> {client_user_id || "N/A"}</p>
+          <p><strong>Request ID:</strong> {request_id || "N/A"}</p>
+          <p><strong>Screening ID:</strong> {id || "N/A"}</p>
+          {search_terms && (
+            <div className="mt-4">
+              <h4 className="font-semibold">Search Terms:</h4>
+              <p><strong>Legal Name:</strong> {search_terms.legal_name || "N/A"}</p>
+              <p><strong>Date of Birth:</strong> {search_terms.date_of_birth || "N/A"}</p>
+              <p><strong>Country:</strong> {search_terms.country || "N/A"}</p>
+              <p><strong>Document Number:</strong> {search_terms.document_number || "N/A"}</p>
+              <p><strong>Watchlist Program ID:</strong> {search_terms.watchlist_program_id || "N/A"}</p>
+            </div>
+          )}
+          {audit_trail && (
+            <div className="mt-4">
+              <h4 className="font-semibold">Audit Trail:</h4>
+              <p><strong>Source:</strong> {audit_trail.source || "N/A"}</p>
+              <p><strong>Timestamp:</strong> {audit_trail.timestamp || "N/A"}</p>
+            </div>
+          )}
         </div>
       </div>
     );
   };
-
+  
   // Render the modal content based on section
   
   const renderModalContent = () => {
@@ -359,7 +389,6 @@ const renderRegulatoryDetails = (regulatoryDetails) => {
 
     return <p className="text-gray-500">Details for {selectedSection} coming soon.</p>;
   };
-console.log("data?.message",data?.message);
 
   return (
     <>
@@ -410,19 +439,18 @@ console.log("data?.message",data?.message);
       {/* Modal */}
       {selectedSection && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className={`relative bg-white p-6 rounded-lg shadow-lg ${
-              selectedSection === "KYC" ? "w-1/2 h-4/5" : "w-1/2 h-4/5"
-            }  overflow-y-scroll`}>
-            <button
-              onClick={closeModal}
-              className="absolute m-5 top-4 right-4 px-3 py-1 text-white bg-green-500 rounded-full hover:bg-green-600"
-            >
-              Close
-            </button>
-            <h2 className="text-2xl font-bold mb-4 m-5">{selectedSection} Details</h2>
-            {renderModalContent()}
-          </div>
+        <div className="relative bg-white p-6 rounded-lg shadow-lg w-11/12 md:w-1/2 h-4/5 overflow-y-scroll">
+          <button
+            onClick={closeModal}
+            className="absolute top-4 right-4 px-3 py-1 text-white bg-green-500 rounded-full hover:bg-green-600"
+          >
+            Close
+          </button>
+          <h2 className="text-2xl font-bold mb-4">{selectedSection} Details</h2>
+          {renderModalContent()}
         </div>
+      </div>
+      
       )}
     </>
   );

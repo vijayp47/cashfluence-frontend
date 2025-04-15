@@ -15,13 +15,7 @@ const NotFoundPage = () => {
       <p className="text-gray-600 mb-6">
         Sorry, the page you are looking for doesn’t exist or has been moved.
       </p>
-      {/* <button
-        onClick={goToHome}
-        className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition duration-200"
-        aria-label="Return to homepage"
-      >
-        Go to Homepage
-      </button> */}
+     
     </div>
   );
 };

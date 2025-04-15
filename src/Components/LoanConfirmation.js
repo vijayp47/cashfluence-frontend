@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import Logo from "../assets/images/logo.png";
+import Logo from "../assets/images/logo.jpg";
 import Loader from "../Components/Loader";
 import { fetchLoanStatus } from '../API/apiServices';
 

@@ -315,40 +315,25 @@ const hasFineEmailSent = (loan) => {
               Borrower's Profile
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 bg-[#FCFCFC] w-full p-4">
-              <div className="flex flex-col">
-                <span className="font-sans font-normal text-[16px] text-[#646464]">
-                  Name:
-                </span>
-                <span className="font-sans font-semibold text-[18px] text-[#383838] break-words"
-                style={{ wordBreak: "break-word", overflowWrap: "break-word" }}>
-                  {user.firstName} {user.lastName}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-sans font-normal text-[16px] text-[#646464]">
-                  Email:
-                </span>
-                <span
-                  className="font-sans font-semibold text-[18px] text-[#383838] break-words"
-                  style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-                >
-                  {user.email}
-                </span>
-              </div>
-              <div className="flex flex-col mt-5">
-              <span className="font-sans font-normal text-[16px] text-[#646464]">
-                  Verified:
-                </span>
-                <span className="font-sans font-semibold text-[18px] text-[#383838]">
-                  {plaidUser?.data?.plaid_idv_status}
-                </span>
-              
-              </div>
-
-              
-
-           
+              {[
+                { label: "Name:", value: `${user.firstName} ${user.lastName}` },
+                { label: "Email:", value: user.email },
+                { label: "Verified:", value: plaidUser?.data?.plaid_idv_status ?? "N/A" }
+              ].map((item, index) => (
+                <div key={index} className="flex flex-row sm:flex-col mt-1 sm:mt-3 justify-between sm:justify-start">
+                  <span className="font-sans font-normal text-[16px] text-[#646464]">
+                    {item.label}
+                  </span>
+                  <span
+                    className="font-sans font-semibold text-[18px] text-[#383838] break-words ml-3 sm:ml-0"
+                    style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
+                  >
+                    {item.value}
+                  </span>
+                </div>
+              ))}
             </div>
+
           </div>
         
             {/* Compliance Checklist */}
@@ -414,14 +399,14 @@ const hasFineEmailSent = (loan) => {
                           : loan.repaymentTerm / 30 + " months"}
                       </td>
                       <td className="font-sans py-2 text-[#373D46] font-semibold text-[18px] text-right">
-  <span
-    className={`font-sans border-2 font-bold text-[16px] py-1 px-4 rounded-lg ${
-      loan.isLoanComplete ? "bg-green-500 text-white border-green-500" : "bg-orange-400 text-white border-orange-400"
-    }`}
-  >
-    {loan.isLoanComplete ? "Completed" : "Ongoing"}
-  </span>
-</td>
+                      <span
+                        className={`font-sans border-2 font-bold text-[16px] py-1 px-4 rounded-lg ${
+                          loan.isLoanComplete ? "bg-green-500 text-white border-green-500" : "bg-orange-400 text-white border-orange-400"
+                        }`}
+                      >
+                        {loan.isLoanComplete ? "Completed" : "Ongoing"}
+                      </span>
+                    </td>
 
                     </tr>
                   ))}
@@ -462,9 +447,13 @@ const hasFineEmailSent = (loan) => {
                     <div className="flex justify-between items-center mb-2">
                       <div className="font-sans text-[#646464] text-[16px]">Status</div>
                       <div className="font-sans text-[#373D46] text-[18px] font-semibold">
-                        <span className="font-sans border-2 border-[#242424] font-bold text-[16px] text-[#242424] py-1 px-4 rounded-lg">
-                          {loan.status}
-                        </span>
+                      <span
+                        className={`font-sans border-2 font-bold text-[16px] py-1 px-4 rounded-lg ${
+                          loan.isLoanComplete ? "bg-green-500 text-white border-green-500" : "bg-orange-400 text-white border-orange-400"
+                        }`}
+                      >
+                        {loan.isLoanComplete ? "Completed" : "Ongoing"}
+                      </span>
                       </div>
                     </div>
                   </div>

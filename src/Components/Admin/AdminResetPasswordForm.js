@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { resetAdminPassword } from '../../API/authApi'; // API to reset password
 import { ToastContainer, toast } from 'react-toastify';
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
-import Logo from "../../assets/images/logo.png";
+import Logo from "../../assets/images/logo.jpg";
 
 const AdminResetPasswordForm = () => {
   const { token } = useParams(); // Get token from URL params
@@ -36,7 +36,7 @@ const AdminResetPasswordForm = () => {
     
       <div className="bg-white shadow-md rounded-lg w-full max-w-md p-6">
       <div className="flex justify-center mb-2">
-        <img src={Logo} alt="logo" className="w-17 h-17 mt-6" />
+        <img src={Logo} alt="logo" className="logo" />
       </div>
 
         <h2 className="text-xl mb-4 text-center">Reset Password</h2>

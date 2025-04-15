@@ -142,8 +142,18 @@ export const createSDKtoken = async () => {
 
 
 export const fetchLoanDurations = async () => {
+  const token = getAuthToken();
+
   try {
-    const response = await axios.get(`${BASE_URL}/loans/loan-durations`);
+    if (!token) {
+      throw new Error("Access token not found.");
+    }
+
+    const response = await axios.get(`${BASE_URL}/loans/loan-durations`,{
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`, // Include the token in headers
+      }});
     return response.data.data; // Return only data
   } catch (error) {
     console.error("Error fetching loan durations:", error);
@@ -322,7 +332,30 @@ export const getDataFromDatabase = async ({ userId }) => {
     throw error;
   }
 };
+export const getUserLoans = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required.');
+    }
 
+    const token = getAuthToken(); // Retrieve auth token
+    if (!token) {
+      throw new Error('Access token not found.');
+    }
+
+    const response = await axios.get(`${BASE_URL}/loans/user/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data; // Return loan data
+  } catch (error) {
+    console.error('Error fetching user loans:', error);
+    throw error; // Propagate error
+  }
+};
 
 export const getDataFromDatabaseAdmin = async ({ userId }) => {
   const token = localStorage.getItem("adminToken");
@@ -463,21 +496,6 @@ export const fetchLoanStatus = async (loanId) => {
 };
 
 
-// Function to fetch last login time
-export const fetchLastLoginAt = async () => {
-  try {
-    const token = localStorage.getItem("token"); // Retrieve auth token if required
-    const response = await axios.get(`${BASE_URL}/auth/last-login`, {
-      headers: {
-        Authorization: `Bearer ${token}`, // Send token in headers
-      },
-    });
-    return response.data.lastLoginAt;
-  } catch (error) {
-    console.error("Error fetching last login time:", error);
-    throw error;
-  }
-};
 
 
 
@@ -518,37 +536,6 @@ export const updateStatusAdmin = async ({ loanId,userId, status,adminName ,admin
   }
 };
 
-
-
-
-
-export const fetchPaymentStatus = async (loanId) => {
- const token = getAuthToken();
-  if (!token) {
-    throw new Error('Authorization token is missing');
-  }
-
-  try {
-    const response = await axios.get(`${BASE_URL}/loans/${loanId}/pending-status`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (response?.data?.success) {
-      return {
-        userId: response.data.userId,
-        paymentPending: response.data.paymentPending,
-      };
-    } else {
-      throw new Error(`Failed to fetch loan status: ${response?.data?.message}`);
-    }
-  } catch (error) {
-    console.error('Error fetching loan status:', error.response?.data || error.message);
-    throw error; // Rethrow the error for the component to handle
-  }
-};
 
 
 export const fetchLiabilities = async () => {

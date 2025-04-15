@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
-import Logo from "../../assets/images/logo.png";
+import Logo from "../../assets/images/logo.jpg";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
@@ -50,7 +50,7 @@ const AdminLogin = () => {
     <div className="flex justify-center min-h-screen font-sans">
   <div className="bg-white shadow-md rounded-lg w-full max-w-md p-6 h-full min-h-screen">
     <div className="flex justify-center mb-6">
-      <img src={Logo} alt="logo" className="w-17 h-17 mt-6" />
+      <img src={Logo} alt="logo" className="logo" />
     </div>
 
     {/* Form */}

@@ -134,97 +134,27 @@ const UserScoreDataDisplay = ({userId}) => {
           {platform} Data
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 bg-[#FCFCFC] w-full p-4 gap-y-4">
-          <div className="flex flex-col">
-            <span className="font-sans font-normal text-[16px] text-[#646464]">
-              Avg. Likes:
-            </span>
-            <span
-              className="font-sans font-semibold text-[18px] text-[#383838] break-words"
-              style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-            >
-              {data?.average_like_count ?? "N/A"}
-            </span>
+            {[
+              { label: "Avg. Likes:", value: data?.average_like_count ?? "N/A" },
+              { label: "Avg. Shares:", value: data?.average_share_count ?? "N/A" },
+              { label: "Avg. Comments:", value: data?.average_comment_count ?? "N/A" },
+              { label: platform === "YouTube" ? "Subscriber:" : "Followers:", value: platform === "YouTube" ? data?.subscriber_count ?? "N/A" : data?.follower_count ?? "N/A" },
+              { label: "Engagement Rate:", value: data ? calculateEngagementRate(data).toFixed(2) : "N/A" },
+              { label: "Content Quality Score:", value: data?.average_content_quality_score ?? "N/A" },
+              { label: "Platform Diversity:", value: getPlatformDiversity(platform) ?? "N/A" },
+              { label: "Income:", value: getIntervalData(data?.income_payout_interval) ?? "N/A" }
+            ].map((item, index) => (
+              <div key={index} className="flex flex-row md:flex-col justify-between md:justify-start">
+                <span className="font-sans font-normal text-[16px] text-[#646464]">
+                  {item.label}
+                </span>
+                <span className="font-sans font-semibold text-[18px] text-[#383838] break-words md:mt-1">
+                  {item.value}
+                </span>
+              </div>
+            ))}
           </div>
-          <div className="flex flex-col">
-            <span className="font-sans font-normal text-[16px] text-[#646464]">
-              Avg. Shares:
-            </span>
-            <span
-              className="font-sans font-semibold text-[18px] text-[#383838] break-words"
-              style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-            >
-              {data?.average_share_count ?? "N/A"}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-sans font-normal text-[16px] text-[#646464]">
-              Avg. Comments:
-            </span>
-            <span
-              className="font-sans font-semibold text-[18px] text-[#383838] break-words"
-              style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-            >
-              {data?.average_comment_count ?? "N/A"}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-sans font-normal text-[16px] text-[#646464]">
-              {platform === "YouTube" ? "Subscriber:" : "Followers:"}
-            </span>
-            <span
-              className="font-sans font-semibold text-[18px] text-[#383838] break-words"
-              style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-            >
-              {platform === "YouTube"
-                ? data?.subscriber_count ?? "N/A"
-                : data?.follower_count ?? "N/A"}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-sans font-normal text-[16px] text-[#646464]">
-              Engagement Rate:
-            </span>
-            <span
-              className="font-sans font-semibold text-[18px] text-[#383838] break-words"
-              style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-            >
-              {data ? calculateEngagementRate(data).toFixed(2) : "N/A"}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-sans font-normal text-[16px] text-[#646464]">
-              Content Quality Score:
-            </span>
-            <span
-              className="font-sans font-semibold text-[18px] text-[#383838] break-words"
-              style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-            >
-              {data?.average_content_quality_score ?? "N/A"}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-sans font-normal text-[16px] text-[#646464]">
-              Platform Diversity:
-            </span>
-            <span
-              className="font-sans font-semibold text-[18px] text-[#383838] break-words"
-              style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-            >
-              {getPlatformDiversity(platform) ?? "N/A"}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-sans font-normal text-[16px] text-[#646464]">
-              Income:
-            </span>
-            <span
-              className="font-sans font-semibold text-[18px] text-[#383838] break-words"
-              style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-            >
-              {getIntervalData(data?.income_payout_interval) ?? "N/A"}
-            </span>
-          </div>
-        </div>
+
       </div>
     );
   };

@@ -30,12 +30,7 @@ const Loader = () => {
           }}
         ></div>
       </div>
-      {/* {/ Loading Text /} */}
-      {/* <p className="mt-6 text-lg font-semibold text-gray-800">
-        Loading, please wait...
-      </p> */}
-
-      {/* {/ Internal CSS for animations /} */}
+     
       <style>{`
         @keyframes bounce {
           0%, 80%, 100% {
