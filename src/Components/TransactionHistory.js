@@ -25,7 +25,10 @@ const TransactionHistory = () => {
         const result = await getUserLoans(userId);
         setLoans(result.data);
       } catch (error) {
-        setError(error.message || 'Failed to fetch loans');
+        
+          const customMsg = error?.response?.data?.message || error.message || 'Failed to fetch loans';
+          setError(customMsg);
+        
       } finally {
         setIsLoading(false);
       }
@@ -47,7 +50,7 @@ const TransactionHistory = () => {
             </button>
             <h1 className="font-sans text-[18px] font-extrabold text-[#383838]">Loan History</h1>
             <div className="ml-auto relative group">
-              <button className="flex items-left" onClick={() => navigate('/profile')}>
+              <button className="flex items-left mr-3" onClick={() => navigate('/profile')}>
                 <FaUser size={25} className="text-[#383838]" />
               </button>
               <span className="font-sans absolute top-[30px] right-0 w-max px-2 py-1 text-xs text-white bg-gray-600 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
@@ -62,7 +65,12 @@ const TransactionHistory = () => {
               <Loader />
           
           ) : error ? (
-            <div className="text-red-500 text-center mt-4">{error}</div>
+            <div className="flex items-center justify-center min-h-[630px]">
+            <p className="text-red-500 text-center">{error}</p>
+          </div>
+          
+
+          
           ) : (
             <div className="p-4 mt-6">
               {loans.length > 0 ? (
@@ -74,7 +82,7 @@ const TransactionHistory = () => {
                   >
                     {/* Loan ID & Status */}
                     <div className="flex justify-between items-center border-b border-[#E5E5E5] px-3 p-3">
-                      <h2 className="font-bold text-[18px] text-[#383838]">Loan ID: {transaction.loanId}</h2>
+                      <h2 className="font-bold  text-[18px] text-[#383838]">Loan ID: {transaction.loanId}</h2>
                       <span className="text-[14px] font-semibold px-2 py-1 rounded-lg"
                         style={{ 
                           backgroundColor: transaction.status === "Approved" ? "#D4EDDA" : "#F8D7DA", 
@@ -86,7 +94,7 @@ const TransactionHistory = () => {
                     </div>
 
                     {/* Loan Details */}
-                    <div className="flex justify-between mb-2 px-3 pb-1 ">
+                    <div className="flex justify-between mb-2 px-3 pb-1 mt-3 ">
                       <span className="text-[#5D5C5D] text-[14px] font-semibold">Loan Amount</span>
                       <span className="font-semibold text-[15px] leading-custom tracking-tight">${transaction?.amount}</span>
                     </div>

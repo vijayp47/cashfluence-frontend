@@ -218,7 +218,33 @@ export const sendMessage = async (message) => {
 };
 
 
+export const disconnectAccountAndDeleteData = async (userId, platform, phylloAccountId, username) => {
+  const token = getAuthToken();  // Get the token for authorization
+  
+  try {
+    // Make the POST request to your back-end API endpoint
+    const response = await axios.post(
+      `${BASE_URL}/phyllo/remove-account`,  // Adjust the URL to your back-end route
+      {
+        userId,  // Send the necessary data in the body
+        platform,
+        phylloAccountId,
+        username,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Authorization header with the token
+        },
+      }
+    );
 
+    return response.data;  // Return the response data (message or success)
+  } catch (error) {
+    console.error("Error disconnecting account and deleting data:", error);
+    throw error;  // Propagate the error so it can be handled in the component
+  }
+};
 
 
 export const getPlatFormNameAndId = async () => {
@@ -306,6 +332,74 @@ export const getSocialAccount = async ({ workPlatformId, userId, limit = 10, off
   }
 };
 
+// This API will tell which platforms are connected for a user
+export const getConnectedPlatforms = async (userId) => {
+  const token = getAuthToken();
+  try {
+    const response = await axios.get(`${BASE_URL}/phyllo/connected-platforms/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data; // Expected: { connectedPlatforms: ["Instagram", "YouTube"] }
+  } catch (error) {
+    console.error("Error fetching connected platforms:", error);
+    return { connectedPlatforms: [] };
+  }
+};
+
+// Fetch current weights
+export const getWeightConfig = async () => {
+
+  try {
+    const response = await axios.get(`${BASE_URL}/weight/weights`, {
+     
+    });
+
+    const data = response?.data;
+
+    const influencerWeights = {
+      engagementRate: data?.influencer_engagementRate ?? 10,
+      incomeConsistency: data?.influencer_incomeConsistency ?? 5,
+      platformDiversity: data?.influencer_platformDiversity ?? 5,
+      contentQuality: data?.influencer_contentQuality ?? 10,
+    };
+
+    const rateWeights = {
+      paymentHistory: data?.rate_paymentHistory ?? 40,
+      influencerScore: data?.rate_influencerScore ?? 30,
+    };
+
+    return { influencerWeights, rateWeights }; // 👈 Return structured format
+  } catch (error) {
+    console.error("Error fetching weight config:", error);
+    throw error;
+  }
+};
+
+
+// Update weight config (admin only)
+export const updateWeightConfig = async (updatedWeights) => {
+  const token = localStorage.getItem("adminToken");
+
+  if (!token) {
+    throw new Error("Admin token not found");
+  }
+
+  try {
+    const response = await axios.put(`${BASE_URL}/weight/weights`, updatedWeights, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Ensure the token is passed correctly
+      },
+    });
+
+    return response?.data; // Return the updated config from backend
+  } catch (error) {
+    console.error("Error updating weight config:", error);
+    throw error;
+  }
+};
 
 
 export const getDataFromDatabase = async ({ userId }) => {
@@ -444,31 +538,42 @@ export const getDataForTransactionGraph = async () => {
     throw new Error(error.response?.data?.message || "Failed to fetch Transaction Graph Stats");
   }
 };
-
-export const deletePlatformDataFromDatabase = async ({ userId, platformName }) => {
-  const token = getAuthToken();
+export const deletePlatformDataFromDatabase = async ({ userId, platformName, accountId }) => {
+  const token = getAuthToken();  // Get the token for authorization
+  
   try {
-    const response = await axios.delete(`${BASE_URL}/phyllo/deletePlatformData`, {
-      data: {
-        userId: userId,
-        platformName: platformName,
+    // Make the POST request to your back-end API endpoint
+    const response = await axios.post(
+      `${BASE_URL}/phyllo/deletePlatformData`,  // Adjust the URL to your back-end route
+      {
+        userId,  // Send the necessary data in the body
+        platformName,  // Make sure the key matches the API expected parameter name
+        accountId,
+      
       },
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` // Add token to the request headers
-      },
-    });
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Authorization header with the token
+        },
+      }
+    );
 
-    if (response?.data?.success) {
-      console.log(`${platformName} data deleted successfully from the database.`);
+    if (response.data && response.data.success) {
+      console.log(`${platformName} account data deleted successfully.`);
+      return true;  // Return success
     } else {
-      console.error(`Failed to delete ${platformName} data from the database.`);
+      console.error(`${platformName} account data deletion failed.`);
+      return false;  // Return failure
     }
   } catch (error) {
-    console.error("Error while deleting platform data:", error);
-    throw error; // Ensure the error is propagated
+    console.error("Error disconnecting account and deleting data:", error);
+    return false;  // Return failure in case of error
   }
 };
+
+
+
 export const fetchLoanStatus = async (loanId) => {
   const token = getAuthToken();
   if (!token) {
@@ -803,7 +908,7 @@ export const updatePassword = async ({ currentPassword, newPassword , confirmPas
   try {
     const response = await axios.post(
       `${BASE_URL}/auth/update-identity-payment-status`,
-      { hasPaidForVerification: true }, // ✅ Pass data correctly
+      { hasPaidForVerification: true }, //  Pass data correctly
       {
         headers: {
           "Content-Type": "application/json",
@@ -825,8 +930,71 @@ export const updatePassword = async ({ currentPassword, newPassword , confirmPas
   }
 };
 
+export const updateTermsAcceptStatus = async () => {
+  const token = getAuthToken();
+
+  if (!token) {
+    throw new Error("Authorization token is missing");
+  }
+
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/auth/update-terms-accept-status`,
+      { termsAccepted: true }, 
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Server ka message aur success yahi se aayega
+    return response.data; // { success: true/false, message: "..." }
+
+  } catch (error) {
+    if (error.response && error.response.data) {
+      // Server ne kuch message diya hai
+      throw new Error(error.response.data.message);
+    } else {
+      // Agar server ka koi proper response nahi aaya
+      throw new Error("Something went wrong while updating terms acceptance status");
+    }
+  }
+};
 
 
+export const getTermsAcceptanceStatus = async () => {
+  const token = getAuthToken();  // This function should return the user's JWT token
+
+  if (!token) {
+    throw new Error("Authorization token is missing");
+  }
+
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/auth/get-terms-status`, 
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Server ka message aur success yahi se aayega
+    return response.data; // { success: true/false, termsAccepted: true/false }
+
+  } catch (error) {
+    if (error.response && error.response.data) {
+      // Server ne kuch message diya hai
+      throw new Error(error.response.data.message);
+    } else {
+      // Agar server ka koi proper response nahi aaya
+      throw new Error("Something went wrong while fetching terms acceptance status");
+    }
+  }
+};
  export const updateUserPassword = async ({  currentPassword,
   newPassword,
   confirmPassword}) => {

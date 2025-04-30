@@ -105,8 +105,10 @@ const ContactSupport = () => {
 
             <div className="p-4 text-left">
               <p className="font-sans text-[#646464] mb-4 font-bold text-[15px]">
-                We are here to help you. Please fill out the form below to
-                contact our support team.
+              💬 *Need Help? We've Got You!*  
+Drop us a line using the form below, and our friendly support crew will get back to you ASAP. 
+We're here to keep your influencer journey stress-free!
+
               </p>
 
               {/* Message Textarea */}

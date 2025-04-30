@@ -164,6 +164,11 @@ const ProfileKYCForm = () => {
 
   useEffect(() => {
     fetchLinkToken();
+    
+  }, []);
+
+  useEffect(() => {
+  
     getIdvStatusOfUser()
   }, [userIdvStatus]);
 
@@ -196,8 +201,7 @@ const ProfileKYCForm = () => {
 
       const data = await response.json();
 
-      console.log("data--------kycccc",data);
-      
+
         retryIdentityVerification()
       // toast.success("Identity verification completed successfully!");
       // if(data.message == "User already verified."){
@@ -206,7 +210,7 @@ const ProfileKYCForm = () => {
       
     } catch (error) {
       console.error("Error completing IDV:", error.message || error);
-      toast.error(error.message || "Failed to complete Identity Verification.");
+      // toast.error(error.message || "Failed to complete Identity Verification.");
     }
   };
 
@@ -306,11 +310,15 @@ const ProfileKYCForm = () => {
             </div>
           </div>
         </div>
-        { !loading ?      <div className=" p-4 m-5 font-sans bg-[#5EB66E1A] rounded-lg font-normal text-[16px] text-[#646464] mb-4 text-left">
-        To comply with financial regulations, we require you to complete
-        the KYC verification process. This helps ensure the security and
-        integrity of our platform.
-      </div> : null}
+        {!loading ? (
+  <div className="p-4 m-5 font-sans bg-[#5EB66E1A] rounded-lg font-normal text-[16px] text-[#646464] mb-4 text-left flex justify-center items-center">
+    <div className="text-center">
+      ✨ *Let’s Quickly Get You Verified!* ✨  <br />
+      We just need a few details to keep everything safe, secure, and super smooth for you. 
+      Completing KYC helps us protect your account and ensure you're ready to unlock funds that fuel your influencer goals.
+    </div>
+  </div>
+) : null}
         {/* Button Section */}
         <div className="flex flex-col justify-center items-center flex-grow">
           {loading ? (

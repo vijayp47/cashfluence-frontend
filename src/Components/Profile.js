@@ -3,24 +3,29 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { ToastContainer, toast } from 'react-toastify';
 import { FaUser } from "react-icons/fa";
+import CloseIcon from '@mui/icons-material/Close';
 // Imported icons
 import Edit from "../assets/images/material-symbols_edit.png";
 import bankDetails from "../assets/images/BankDetails.png";
 import Settings from "../assets/images/Vector (1).png";
 import Notification from "../assets/images/Vector (2).png";
-import changePass from "../assets/images/Vector (3).png";
+import changePass from "../assets/images/change Password.png";
+import KYC from "../assets/images/KYC.png"
 import FAQ from "../assets/images/headphones.png";
 import TC from "../assets/images/Vector (5).png";
-import contact from "../assets/images/Vector (6).png";
+// import contact from "../assets/images/Vector (6).png";
 import logout from "../assets/images/Vector (7).png";
 import arrow from "../assets/images/Vector (8).png";
 import plusProfile from "../assets/images/plusProfile.png";
 import useAccountStore from './store/useAccountStore';
+import contact from "../assets/images/ph_address-book-light.png";
+import LoanHistory from "../assets/images/LOAN history.png"
 
 import { updateUserPassword, updateUserProfile,getUserProfile } from "../API/apiServices";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5"; // Import eye icons
 import {
   Box,
+  IconButton,
   Typography,
   Button,
   Modal,
@@ -262,9 +267,13 @@ const Profile = ({setIsAuthenticated}) => {
             isBank
             onClick={() => navigate("/bank-details")}
           />
-
+         <MenuItem
+            icon={KYC}
+            label="KYC Profile"
+            onClick={() => navigate("/kyc-profile")}
+          />
           <MenuItem
-            icon={changePass}
+            icon={LoanHistory}
             label="Loan History"
             onClick={() => navigate("/loan-history")}
           />
@@ -279,11 +288,13 @@ const Profile = ({setIsAuthenticated}) => {
             label="Terms & Conditions"
             onClick={() => navigate("/terms-conditions")}
           />
+          
           <MenuItem
             icon={contact}
             label="Contact Support"
             onClick={() => navigate("/contact")}
           />
+         
           <MenuItem
             icon={logout}
             label="Log Out"
@@ -298,7 +309,16 @@ const Profile = ({setIsAuthenticated}) => {
      
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-semibold mb-4">Edit Password</h2>
+          <div className="flex justify-between items-center mb-4">
+  <h2 className="text-xl font-semibold">Edit Password</h2>
+  <IconButton
+    onClick={() =>setChangePasswordModalOpen(false)} 
+    size="small"
+    sx={{ padding: 0 }}
+  >
+    <CloseIcon />
+  </IconButton>
+</div>
             <form onSubmit={handleSaveChanges}>
               <div className="mb-1 relative">
                 <input
@@ -388,23 +408,26 @@ const Profile = ({setIsAuthenticated}) => {
               p: 4,
             }}
           >
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: "bold",
-                mb: 4,
-                display: "flex",
-                alignItems: "center",
-                gap: 2, // Space between the image and text
-              }}
-            >
-              {/* <img
-                src={LeftVector} // Replace with your actual image path
-                alt="Left Vector"
-                style={{ width: "14px", height: "24px" }} // Adjust size as needed
-              /> */}
-              Edit Profile
-            </Typography>
+           <Typography
+  variant="h6"
+  sx={{
+    fontWeight: "bold",
+    mb: 4,
+    display: "flex",
+    alignItems: "center",
+    gap: 2, // Space between the image and text
+    justifyContent: "space-between", // Ensure the content is spaced between the text and button
+  }}
+>
+  Edit Profile
+  <IconButton
+   onClick={() => setuserProfileEditOpen(false)}// Handle the button click event as needed
+    size="small"
+    sx={{ padding: 0 }} // Optional: Remove padding for better alignment
+  >
+    <CloseIcon />
+  </IconButton>
+</Typography>
 
             <TextField
               fullWidth

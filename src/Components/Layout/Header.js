@@ -3,6 +3,15 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import MainLogo from "../../assets/images/main-logo.png";
 import { Avatar } from "@mui/material";
+import WeightModal from "../Admin/weightModal";
+import {getWeightConfig} from "../../API/apiServices";
+import { TbUserEdit } from "react-icons/tb";
+import { CiViewList } from "react-icons/ci";
+import { BsGraphUpArrow } from "react-icons/bs";
+import { IoSettingsOutline } from "react-icons/io5";
+import { AiOutlineLogout } from "react-icons/ai";
+
+
 
 const Header = ({
   profileData,
@@ -14,7 +23,8 @@ const Header = ({
   const navigate = useNavigate();
   const location = useLocation();
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
-
+ const [weights, setWeights] = useState(null); // Start with null until data is fetched
+  const [isModalOpen, setIsModalOpen] = useState(false);
   // Debounce logic to limit search query updates
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -23,6 +33,32 @@ const Header = ({
     return () => clearTimeout(handler);
   }, [debouncedQuery]);
 
+   useEffect(() => {
+      const fetchWeights = async () => {
+        try {
+          const { influencerWeights, rateWeights } = await getWeightConfig();
+    
+          console.log("influencerWeights-----------1", influencerWeights); // Debug
+          console.log("rateWeights", rateWeights); // Debug
+    
+          setWeights({
+            influencer_engagementRate: influencerWeights.engagementRate,
+            influencer_incomeConsistency: influencerWeights.incomeConsistency,
+            influencer_platformDiversity: influencerWeights.platformDiversity,
+            influencer_contentQuality: influencerWeights.contentQuality,
+            rate_paymentHistory: rateWeights.paymentHistory,
+            rate_influencerScore: rateWeights.influencerScore,
+          });
+          
+        } catch (error) {
+          console.error("Error fetching weights:", error);
+        }
+      };
+    
+      fetchWeights();
+    }, []);
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
   // Handle dropdown close when clicking outside
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -169,47 +205,69 @@ const Header = ({
 
             {/* Dropdown Menu */}
             {dropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-[180px] max-w-[90vw] bg-white border rounded shadow-lg z-10">
-                {/* Greeting and Email for Small Devices */}
-                <div className="sm:hidden border-b p-4 break-words">
-                  <p className="text-gray-600 truncate">
-                    {profileData?.firstName
-                      ? `Hello, ${profileData?.firstName} ${profileData?.lastName}`
-                      : "Hello, Admin"}
-                  </p>
-                  <p className="font-bold text-gray-800 mt-2 truncate">
-                    {profileData?.email}
-                  </p>
-                </div>
-                <button
-                  onClick={handleGraph}
-                  className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
-                >
-                  Visual representation
-                </button>
-                <button
-                  onClick={handleChangeProfile}
-                  className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
-                >
-                  Edit Profile
-                </button>
-                <button
-                  onClick={handleRedirect}
-                  className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
-                >
-                  Contact Records
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
+  <div className="absolute right-0 top-full mt-3 w-[220px] max-w-[90vw] bg-white border rounded shadow-lg z-10">
+    {/* Greeting and Email for Small Devices */}
+    <div className="sm:hidden border-b p-4 break-words">
+      <p className="text-gray-600 truncate">
+        {profileData?.firstName
+          ? `Hello, ${profileData?.firstName} ${profileData?.lastName}`
+          : "Hello, Admin"}
+      </p>
+      <p className="font-bold text-gray-800 mt-2 truncate">
+        {profileData?.email}
+      </p>
+    </div>
+
+    <button
+      onClick={handleGraph}
+      className="flex items-center gap-2 w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
+    >
+      <BsGraphUpArrow />
+      Visual representation
+    </button>
+
+    <button
+      onClick={handleChangeProfile}
+      className="flex items-center gap-2 w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
+    >
+      <TbUserEdit />
+      Edit Profile
+    </button>
+
+    <button
+      onClick={handleRedirect}
+      className="flex items-center gap-2 w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
+    >
+      <CiViewList />
+      Contact Records
+    </button>
+
+    <button onClick={openModal} className="flex items-start gap-2 w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100">
+  <IoSettingsOutline size={26} />
+  <span>Manage Influencer Score Weights</span>
+</button>
+
+
+    <button
+      onClick={handleLogout}
+      className="flex items-center gap-2 w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
+    >
+      <AiOutlineLogout />
+      Logout
+    </button>
+  </div>
+)}
+
           </div>
         </div>
       </div>
+
+      <WeightModal
+                        isOpen={isModalOpen}
+                        closeModal={closeModal}
+                        weights={weights}
+                        setWeights={setWeights}
+                      />
       {/* {/ Search Bar for Mobile /} */}
       {showSearchBar && (
         <div className="w-full sm:hidden mt-4">

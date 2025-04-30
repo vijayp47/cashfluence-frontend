@@ -164,9 +164,10 @@ const VerificationInProgress = () => {
 
             {/* Compliance Notice */}
             <div className="p-4 font-sans bg-[#5EB66E1A] rounded-lg font-normal text-[16px] text-[#646464] mb-4 text-left">
-              To comply with financial regulations, we require you to complete
-              the KYC verification process. This helps ensure the security and
-              integrity of our platform.
+            ✨ *Let’s Quickly Get You Verified!* ✨  
+We just need a few details to keep everything safe, secure, and super smooth for you. 
+Completing KYC helps us protect your account and ensure you're ready to unlock funds that fuel your influencer goals.
+
             </div>
           </div>
         </div>

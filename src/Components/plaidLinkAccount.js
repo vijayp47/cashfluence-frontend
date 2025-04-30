@@ -42,6 +42,7 @@ const PlaidLink = () => {
         })
         .catch((error) => console.error('Error:', error));
     },
+  
   });
 
   // Render a loading message or the Plaid Link button based on the linkToken availability

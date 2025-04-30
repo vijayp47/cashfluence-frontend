@@ -34,6 +34,8 @@ const UsersLoanDetail = ({
         const response = await axios.get(
           `http://localhost:3000/api/stripe/repayment-transactions?user_id=${user.id}&loan_id=${selectedLoan.id}`
         );
+      
+        
         if (response.data.success) {
           setRepayments(response.data.data);
         } else {

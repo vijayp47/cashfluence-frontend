@@ -5,17 +5,20 @@ import 'react-toastify/dist/ReactToastify.css';
 import Logo from "../assets/images/logo.jpg";
 import { IoEyeOutline, IoEyeOffOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
-import { userSignup, userLogin, verifyAccount } from '../API/authApi'; 
+import { userSignup, userLogin, verifyAccount,resendOTP } from '../API/authApi'; 
 import useStore from './store/userProfileStore';
 
 const AuthForm = ({ onLogin }) => {
   const { fetchProfileData } = useStore();
+  
+  const [resendOTPLoading, setResendOTPLoading] = useState(false); 
   const [isVerifying, setIsVerifying] = useState(false); // For OTP verification loading
   const [isLoading, setIsLoading] = useState(false); // For signup/login loading
   const [isLogin, setIsLogin] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [signupPayload, setSignupPayload] = useState(null);
   const [email, setEmail] = useState('');
   const { register, handleSubmit, formState: { errors }, watch } = useForm();
   const password = watch("password");
@@ -62,7 +65,7 @@ const AuthForm = ({ onLogin }) => {
           setIsLoading(false);
           return;
         }
-      
+        setSignupPayload(rest);
         result = await userSignup(rest); // Call the signup API
       
         localStorage.clear();
@@ -74,30 +77,35 @@ const AuthForm = ({ onLogin }) => {
     } catch (error) {
       toast.error(error.message || 'Something went wrong');
     } finally {
-      setIsLoading(false); // Hide loaderuserSignup
+      setIsLoading(false); 
     }
   };
   
   // OTP submission handler
-  const handleOtpSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setIsLoading(true); // Show loader for OTP verification
-      const result = await verifyAccount({
-        email, // Use the stored email state
-        otp: verificationCode // Assuming this is your OTP
-      });
-      toast.success(result.message || 'Verification successful!');
-      setTimeout(() => {
-        setIsVerifying(false); // Hide OTP screen
-        setIsLogin(true); // Switch to login form
-      }, 1000); // Slight delay for a better transition effect
-    } catch (error) {
-      toast.error(error.message || 'Invalid verification code');
-    } finally {
-      setIsLoading(false); // Hide loader
-    }
-  };
+// OTP verification submit
+const handleOtpSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    setIsLoading(true); // Show loader for OTP verification
+    const result = await verifyAccount({
+      email, // Use the stored email state
+      otp: verificationCode, // Assuming this is your OTP
+    });
+
+    // If OTP is valid, display success message and redirect
+    toast.success(result.message || 'Verification successful!');
+    setTimeout(() => {
+      setIsVerifying(false); // Hide OTP screen
+        setIsLogin(true);
+    }, 2000); // 2 seconds delay before redirection
+  } catch (error) {
+    toast.error(error.message || 'Invalid verification code');
+  } finally {
+    setIsLoading(false); // Hide loader
+  }
+};
+
+
 
   return (
     <div className="flex justify-center min-h-screen font-sans">
@@ -236,9 +244,20 @@ const AuthForm = ({ onLogin }) => {
         </form>) :  (
           // OTP Verification Form
           <form onSubmit={handleOtpSubmit} className="space-y-4 mt-6 text-left">
+           
             <div className="mt-3">
-              <label htmlFor="otp" className="block text-[16px] text-[#8F959E] font-sans text-base leading-[21.82px] text-left mb-1">Enter OTP</label>
-              <input
+            <div className="flex justify-between items-center mt-3 mb-2">
+  <label htmlFor="otp" className="text-[16px] text-[#8F959E] font-sans text-base leading-[21.82px]">
+    Enter OTP
+  </label>
+  <button
+    type="button"
+    onClick={() => setIsVerifying(false)}
+    className="text-[#5EB66E] underline text-[14px]"
+  >
+    ← Back to Sign Up
+  </button>
+</div>   <input
                 id="otp"
                 type="text"
                 value={verificationCode}
@@ -253,6 +272,57 @@ const AuthForm = ({ onLogin }) => {
             >
               {isLoading ? 'Verifying...' : 'Verify OTP'}
             </button>
+
+         
+  {/* Resend Code Placeholder */}
+  
+<button
+  type="button"
+  onClick={async () => {
+    if (!signupPayload) {
+      toast.error('Signup details not available');
+      return;
+    }
+
+    try {
+      setResendOTPLoading(true);
+      const result = await resendOTP({
+        email, // Use the stored email state
+      });
+      toast.success(result.message || 'OTP sent successfully! Please check your email.');
+    } catch (error) {
+      setResendOTPLoading(false);
+      toast.error(error.message || 'Failed to resend OTP');
+    } finally {
+      setResendOTPLoading(false);
+    }
+  }}
+  className="text-[#5EB66E] mt-2 text-center w-full underline text-[14px]"
+>
+{resendOTPLoading ? (
+    <span className="flex items-center justify-center">
+      <svg className="w-4 h-4 mr-2 animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none"></circle>
+        <path d="M4 12a8 8 0 0 1 16 0" strokeLinecap="round" strokeLinejoin="round"></path>
+      </svg>
+      Resending...
+    </span>
+  ) : (
+    "Send another 6-digit code"
+  )}
+</button>
+<div className="flex flex-col justify-center items-center p-4">
+  <div className="rounded-lg  mb-4 w-full max-w-md">
+    <h2 className="text-center text-[17px] font-semibold mb-4 ">
+      ✨ You're almost there! ✨
+    </h2>
+    <p className="text-center text-base text-[#646464] -mt-3">
+      We've just sent you a special code via email. Go grab it, enter it here, and let's get you set up for success! 🚀
+    </p>
+  </div>
+</div>
+
+
           </form>
         )}
 

@@ -2,6 +2,8 @@ import React, { useState,useRef, useEffect } from "react";
 import Header from "../Layout/Header";
 import { useLocation,useNavigate } from "react-router-dom";
 import UsersLoanDetail from "./UsersLoanDetail";
+import WeightModal from "./weightModal"; // Import the modal
+import { getWeightConfig } from "../../API/apiServices";
 import { IoArrowBackCircleSharp } from "react-icons/io5";
 import Overdue from "../../assets/images/overdue.png";
 import ComplianceChecklist from "./ComplianceChecklist";
@@ -25,6 +27,10 @@ const UsersLoanList = () => {
   // const loanData = user?.loans || []
 
   const userId = userData.id
+  const [weights, setWeights] = useState(null); // Start with null until data is fetched
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+ 
 
 
   // for changing instantly we have to call these api
@@ -53,8 +59,7 @@ const UsersLoanList = () => {
     fetchUserData();
     fetchPlaidUserData();
   }, [userId]);
-
-  const fetchPlaidUserData = async () => {
+   const fetchPlaidUserData = async () => {
     console.log("Fetching Plaid user data...");
   
     try {
@@ -108,8 +113,7 @@ const UsersLoanList = () => {
   
 
   const filteredLoans = loanData.filter((loan) => {
-    console.log("loan999999999",loan);
-    
+ 
     const withinRange =
       loan.amount >= loanMinAmount && loan.amount <= loanMaxAmount;
     const matchesStatus = loanStatus === "All" || loan.status === loanStatus;
@@ -126,6 +130,39 @@ const UsersLoanList = () => {
 
   const loanDetailRef = useRef(null);
  
+
+
+  // useEffect(() => {
+  //   const fetchWeights = async () => {
+  //     try {
+  //       const { influencerWeights, rateWeights } = await getWeightConfig();
+  
+  //       console.log("influencerWeights-----------", influencerWeights); // Debug
+  //       console.log("rateWeights", rateWeights); // Debug
+  
+  //       setWeights({
+  //         influencer_engagementRate: influencerWeights.engagementRate,
+  //         influencer_incomeConsistency: influencerWeights.incomeConsistency,
+  //         influencer_platformDiversity: influencerWeights.platformDiversity,
+  //         influencer_contentQuality: influencerWeights.contentQuality,
+  //         rate_paymentHistory: rateWeights.paymentHistory,
+  //         rate_influencerScore: rateWeights.influencerScore,
+  //       });
+        
+  //     } catch (error) {
+  //       console.error("Error fetching weights:", error);
+  //     }
+  //   };
+  
+  //   fetchWeights();
+  // }, []);
+  
+  // const openModal = () => setIsModalOpen(true);
+  // const closeModal = () => setIsModalOpen(false);
+
+  // Show loading or modal only after weights are fetched
+ 
+
 
   // Handle changes in the min range
   const handleMinChange = (e) => {
@@ -154,9 +191,7 @@ const UsersLoanList = () => {
     }
   };
 
-  console.log("selectedLoan-------------------",selectedLoan);
-  
-console.log("filteredLoans888888888888888888",filteredLoans);
+ 
 
 const hasFineEmailSent = (loan) => {
   return loan.transactions.some(transaction => transaction.fine_email_sent === true);
@@ -467,9 +502,27 @@ const hasFineEmailSent = (loan) => {
           )}
               </div>
               <div className="bg-white p-5 rounded-lg shadow border border-[#C4C4C4]">
-              <h2 className="text-[24px] font-sans text-[#383838] font-extrabold mb-4 text-left">
-                Influencer Data 
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+  <h2 className="text-[24px] font-sans text-[#383838] font-extrabold">
+    Influencer Data
+  </h2>
+  {/* <button
+    onClick={openModal}
+    className="text-blue-600 hover:underline font-medium transition duration-200"
+  >
+    Manage Influencer Score Weights
+  </button> */}
+</div>
+
+       
+      {/* Display the modal for manage weights */}
+      {/* <WeightModal
+        isOpen={isModalOpen}
+        closeModal={closeModal}
+        weights={weights}
+        setWeights={setWeights}
+      /> */}
+    
               {!loader ?  <InterestRateData userId={userId}/> : null}
              
             </div>

@@ -19,6 +19,9 @@ export const sendVerificationEmail = (email) => {
 export const verifyAccount = (data) => {
   return postApi('/auth/verify-otp', data); // Make a POST request to verify the OTP
 };
+export const resendOTP = (data) => {
+  return postApi('/auth/resend-otp', data); // Make a POST request to verify the OTP
+};
 
 // Function to request a password reset link
 export const sendResetPasswordEmail = (email) => {

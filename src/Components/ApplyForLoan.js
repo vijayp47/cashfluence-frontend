@@ -8,7 +8,7 @@ import CheckoutForm from '../../src/Components/CheckoutForm';
 import { loadStripe } from "@stripe/stripe-js";
 import 'react-toastify/dist/ReactToastify.css';
 import {
-  fetchStateAnnualPercentageRate,updateStatusForIdentityPayment,fetchLastLoginAt
+  fetchStateAnnualPercentageRate,updateStatusForIdentityPayment,fetchLastLoginAt,getWeightConfig,getTermsAcceptanceStatus 
 } from "../API/apiServices";
 import Swal from "sweetalert2";
 import Loader from "./Loader";
@@ -17,9 +17,11 @@ import useInfluencerStore from "./store/useInfluencerStore";
 import useAccountStore from "./store/useAccountStore";
 
 const ApplyForLoan = () => {
-  const stripePromise = loadStripe("pk_test_51PnDYCHJvnanatbhqplAFXJaRmLHiZf225u3hQ4FL3AcN5ear6ZZsggNWieJcHnf5pacaIYT3gB2k2ti0LsWOyRo00dEmBlxTO");
+  // const stripePromise = loadStripe("pk_test_51PnDYCHJvnanatbhqplAFXJaRmLHiZf225u3hQ4FL3AcN5ear6ZZsggNWieJcHnf5pacaIYT3gB2k2ti0LsWOyRo00dEmBlxTO");
   
   const { influencerProfile, score, isLoading, fetchInfluencerProfile } = useInfluencerStore();
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   const { profileData, fetchProfileData } = useStore();
   const BASE_URL = process.env.REACT_APP_BASE_URL;
   const navigate = useNavigate();
@@ -56,6 +58,27 @@ const ApplyForLoan = () => {
    
     const [error, setError] = useState(null);
   
+    useEffect(() => {
+      const fetchTermsStatus = async () => {
+        try {
+          const response = await getTermsAcceptanceStatus();
+          setTermsAccepted(response.termsAccepted); // Set termsAccepted status
+        } catch (error) {
+          console.error('Error fetching terms acceptance status:', error);
+          // Handle error, possibly set a state for error messages
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchTermsStatus();
+    }, []);
+    useEffect(() => {
+      if (!isLoading && score !== 0) {
+        console.log("Final Score: ", score);
+      }
+    }, [score, isLoading]);
+    
  
   
    
@@ -68,8 +91,8 @@ const ApplyForLoan = () => {
         );
         setClientSecret(data.clientSecret);
         console.log("clientSecret",data.clientSecret)
-        setShowPaymentModal(true);
-        setShowPaymentPrompt(false);
+        // setShowPaymentModal(true);
+        // setShowPaymentPrompt(false);
       } catch (error) {
         toast.error("Payment initialization failed.");
       }
@@ -172,6 +195,11 @@ const plaidStateData = async () => {
     }
   }, [profileData, fetchProfileData]);
 
+
+
+  const [riskScoreWeights, setRiskScoreWeights] = useState(null);
+
+  
   useEffect(() => {
     const fetchAPR = async () => {
       try {
@@ -180,6 +208,9 @@ const plaidStateData = async () => {
           repaymentTerm,
           state
         );
+
+        console.log("data?.value",data?.value);
+        
         setFetchedAPR(data?.value); 
   
         if (data?.value !== null && data?.value !== undefined) {
@@ -192,6 +223,8 @@ const plaidStateData = async () => {
   
           // Calculate Adjusted APR
           const adjustedAPR = fetchedAPR + loanTermImpact; // State law directly adds to fetchedAPR
+          console.log("adjustedAPR",adjustedAPR);
+          
           const roundedAPRWeight = adjustedAPR.toFixed(2);
           setStateLawAndLoanTermWeight(roundedAPRWeight);
         }
@@ -202,6 +235,25 @@ const plaidStateData = async () => {
     };
     fetchAPR();
   }, [loanAmount, repaymentTerm, state]);
+
+
+  useEffect(() => {
+    const fetchAndCalculate = async () => {
+      try {
+        const { rateWeights } = await getWeightConfig();
+        console.log("rateWeights", rateWeights);
+  
+        setRiskScoreWeights(rateWeights);
+      } catch (err) {
+        console.error("Could not calculate rate", err);
+      }
+    };
+  
+    fetchAndCalculate();
+  }, []);
+  
+
+
   
   // Handle Institution and Account change within one dropdown
   const handleSelectionChange = (value, type) => {
@@ -260,10 +312,11 @@ const plaidStateData = async () => {
   }) => {
     // Define weightings for each factor
     const weights = {
-      paymentHistory: 0.4,
-      influencerScore: 0.3,
+      paymentHistory: riskScoreWeights?.paymentHistory/100,
+      influencerScore:  riskScoreWeights?.influencerScore/100,
       // externalFactors: 0.3,
     };
+
 
     // Calculate weighted scores with proper checks
     const weightedPaymentHistory =
@@ -290,6 +343,8 @@ const plaidStateData = async () => {
     // externalFactors: stateLawAndLoanTermWeight,
   };
 
+
+  
   const rateResult = calculateRate(riskInputs);
 
   const handleSliderChange = (e) => {
@@ -303,16 +358,30 @@ const plaidStateData = async () => {
 
 
   const handleSubmit = async () => {
+    const numericRateResult = parseFloat(rateResult);
+    const numericFetchedAPR = parseFloat(fetchedAPR);
+  
+    console.log("numericRateResult", numericRateResult);
+    console.log("numericFetchedAPR", numericFetchedAPR);
 
-    if (hasPaidForVerification) {
-
-      if (rateResult > fetchedAPR) {
+    // if (hasPaidForVerification) {
+      if (!termsAccepted) {
+        toast.info(
+          <span>
+            Please accept the <a href="/terms-conditions" className="text-blue-500 underline">Terms and Conditions</a> before applying for the loan.
+          </span>
+        );
+        return;
+      }
+      
+      
+      if (numericRateResult > numericFetchedAPR) {
         toast.error("Your interest rate has exceeded the allowed state APR limit. You cannot apply for a loan at this time. Please try again later.");
-       return
-     }
+        return;
+      }
   
       if (!validateForm()) {
-         toast.error('Fix the error before proceed');
+        //  toast.error('Fix the error before proceed');
         return
       }
       
@@ -395,9 +464,10 @@ const plaidStateData = async () => {
       } finally {
         setLoading(false);
       }
-    } else {
-      setShowPaymentPrompt(true); // Open payment prompt modal
-    }
+    // } 
+    //  {
+    //   setShowPaymentPrompt(true); // Open payment prompt modal
+    // }
     
 
    
@@ -419,9 +489,7 @@ const plaidStateData = async () => {
         <div>
           <div className="font-sans flex items-center  border-b  bg-[#0000]">
             <button
-              onClick={() => {
-                navigate("/socialaccount");
-              }}
+             onClick={() => navigate(-1)}
               className="mr-4 text-[#383838] m-4 "
             >
               <svg
@@ -650,7 +718,7 @@ const plaidStateData = async () => {
         </div>
       </div>
        {/* Payment Prompt Modal */}
-    {showPaymentPrompt && (
+    {/* {showPaymentPrompt && (
           <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
             <div className="bg-white p-6 rounded-lg shadow-lg text-center">
               <h2 className="text-xl font-semibold mb-4">Payment Required</h2>
@@ -671,7 +739,7 @@ const plaidStateData = async () => {
             <CheckoutForm onSuccess={handlePaymentSuccess} onClose={() => setShowPaymentModal(false)} />
           )}
         </Elements>
-      )}
+      )} */}
 
         <ToastContainer position="top-center" autoClose={2000} />
     </div>

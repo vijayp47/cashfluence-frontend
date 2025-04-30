@@ -42,7 +42,9 @@ const LoanConfirmation = () => {
       message = (
         <>
           <h1 className="font-sans text-2xl font-bold mb-2">Loan Approved!</h1>
-          <p className="font-sans text-[15px]">Congratulations! Your loan has been approved. We will contact you with the next steps.</p>
+          <p className="font-sans text-[15px]">🎉 *Congratulations—You're Approved!* 🎉  
+Your funds are on the way, and you're officially one step closer to achieving your influencer dreams. Let's do amazing things together!
+</p>
         </>
       );
       bgColorClass = 'bg-green-50'; // Green background for approved
@@ -53,7 +55,8 @@ const LoanConfirmation = () => {
       message = (
         <>
           <h1 className="font-sans text-2xl font-bold mb-2 text-red-500">Loan Rejected</h1>
-          <p className="font-sans text-[15px] text-red-500">We regret to inform you that your loan application has been rejected. Please feel free to contact us for further assistance.</p>
+          <p className="font-sans text-[15px] text-red-500">😕 *We Appreciate Your Application!*  
+          Right now, we couldn’t approve your loan—but don't get discouraged! Keep building your profile and try again soon. We're here to help you succeed!</p>
         </>
       );
       bgColorClass = 'bg-red-50'; // Red background for rejected
@@ -65,7 +68,9 @@ const LoanConfirmation = () => {
       message = (
         <>
           <h1 className="font-sans text-2xl font-bold mb-2 text-yellow-500">Loan Request Submitted!</h1>
-          <p className="font-sans text-[15px] text-yellow-500">We will review your application and get back to you shortly.</p>
+          <p className=" text-center font-sans text-[15px] text-yellow-500">⏳ *You're Almost There!* ⏳  <br/>
+Your application is currently under review. Sit tight—we’re working quickly behind the scenes. You’ll hear from us soon with good news!
+</p>
         </>
       );
       bgColorClass = 'bg-yellow-50'; // Yellow background for pending

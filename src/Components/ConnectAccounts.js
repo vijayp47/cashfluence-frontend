@@ -10,30 +10,52 @@ import {
   getPlatFormNameAndId,
   getSocialAccount,
   getDataFromDatabase,
-  deletePlatformDataFromDatabase,fetchLiabilities
+  deletePlatformDataFromDatabase,
+  fetchLiabilities,
+  getConnectedPlatforms,
 } from "../API/apiServices";
 import useScoreStore from "./store/useInfluencerStore";
 import Loader from "../Components/Loader";
 import { toast } from "react-toastify";
-import useStore from "./store/userProfileStore"; 
+import useStore from "./store/userProfileStore";
 import useInfluencerStore from "./store/useInfluencerStore";
 
 const clientDisplayName = process.env.REACT_APP_CLIENT_DISPLAY_NAME;
 const environment = process.env.REACT_APP_ENVIRONMENT;
-
+const platformLogos = {
+  Instagram: require("../assets/images/skill-icons_instagram.png"),
+  Twitter: require("../assets/images/logo.jpg"),
+  LinkedIn: require("../assets/images/logo.jpg"),
+  YouTube: require("../assets/images/logos_youtube-icon.png"),
+  TikTok: require("../assets/images/logos_tiktok-icon.png"),
+};
 const ConnectAccounts = () => {
   const navigate = useNavigate();
   const [loadingPlatform, setLoadingPlatform] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [platformLoading, setPlatformLoading] = useState(false); // State for platform-related loading
+  const [platformLoading, setPlatformLoading] = useState(false);
   const [token, setToken] = useState();
   const [platforms, setPlatforms] = useState([]);
-  const [btnLoading,setBtnLoading]= useState(false);
+  const [btnLoading, setBtnLoading] = useState(false);
   const [dataFetch, setDataFetch] = useState(false);
-  const [liabilities, setLiabilities] = useState(null); // Store response
+  const [liabilities, setLiabilities] = useState(null);
   const { profileData, fetchProfileData } = useStore();
-  const { influencerProfile, score, isLoading, fetchInfluencerProfile } = useInfluencerStore();
-console.log("score",score);
+  const { influencerProfile, score, isLoading, fetchInfluencerProfile } =
+    useInfluencerStore();
+  const [connectedPlatforms, setConnectedPlatforms] = useState([]);
+
+  useEffect(() => {
+    const fetchConnectedPlatforms = async () => {
+      if (userId) {
+        const platforms = await getConnectedPlatforms(userId);
+        console.log("setConnectedPlatforms", platforms);
+
+        setConnectedPlatforms(platforms.connectedPlatforms || []);
+      }
+    };
+
+    fetchConnectedPlatforms();
+  }, [userId, btnLoading]);
 
   useEffect(() => {
     if (!profileData) {
@@ -41,7 +63,6 @@ console.log("score",score);
     }
   }, [profileData, fetchProfileData]);
 
- 
   useEffect(() => {
     let isComponentMounted = true;
 
@@ -60,6 +81,8 @@ console.log("score",score);
             setToken(sdkToken.sdk_token);
 
             const platformData = await getPlatFormNameAndId();
+            console.log("platformData----1", platformData);
+
             setPlatforms(platformData);
           }
 
@@ -78,12 +101,15 @@ console.log("score",score);
           setToken(sdkToken.sdk_token);
 
           const platformData = await getPlatFormNameAndId();
+          console.log("platformData----2", platformData);
           setPlatforms(platformData);
         }
 
         setPlatformLoading(false);
       } catch (error) {
         console.error("Error creating Phyllo user:", error);
+        setPlatformLoading(false);
+      }finally{
         setPlatformLoading(false);
       }
     };
@@ -96,8 +122,8 @@ console.log("score",score);
       isComponentMounted = false; // Cleanup to prevent duplicate calls
     };
   }, []); // Ensure an empty dependency array
-const initializePhyllo = async (platformName, workPlatformId) => {
-setBtnLoading(true);
+  const initializePhyllo = async (platformName, workPlatformId) => {
+    setBtnLoading(true);
     if (window.PhylloConnect) {
       try {
         const config = {
@@ -109,84 +135,81 @@ setBtnLoading(true);
         };
 
         const phylloInstance = window.PhylloConnect.initialize(config);
-      // Step 1: Register event listeners before opening the UI
-        phylloInstance.on(
-          "accountConnected",
-          async (accountId, workPlatformId, metadata) => {
-            // Proceed if account does not exist
 
-          
-            setLoadingPlatform(null);
+        // Step 1: Intercept the account disconnect event
+        phylloInstance.on("accountDisconnected", async (accountId, workPlatformId, userId) => {
+          setBtnLoading(true);
+          console.log("accountId,accountId", accountId);
 
-            // Notify the user of successful connection
-            Swal.fire(
-              "Connected!",
-              `Successfully connected to ${platformName}. Fetching account data...`,
-              "success"
-            );
+          // console.log("metadata ",metadata );
 
-            try {
-              // Fetch social account data
-              const socialAccountData = await getSocialAccount({
-                workPlatformId,
-                userId,
-                limit: 10,
-                offset: 0,
-                platformName
-              });
+          try {
 
-              setBtnLoading(false);
-              Swal.fire(
-                "Success!",
-                `Successfully fetched account data for ${platformName}.`,
-                "success"
-              );
-              
-            } catch (error) {
-              
-              console.error("Error fetching social account data:", error);
-              Swal.fire(
-                "Error",
-                `Failed to fetch account data for ${platformName}.`,
-                "error"
-              );
-            }
-            finally{
-              setBtnLoading(false);
-            }
-          }
-        );
+            // Step 1: Delete platform data first (from your database)
+            const deleteSuccess = await deletePlatformDataFromDatabase({ userId, platformName, accountId });
+            console.log("deleteSuccess", deleteSuccess);
 
-        // Handle account disconnection
-        phylloInstance.on(
-          "accountDisconnected",
-          async (accountId, workPlatformId, additionalData) => {
-         
-            // Deleting platform data from the database when the account is disconnected
-            try {
-              await deletePlatformDataFromDatabase({ userId, platformName });
+            // Step 2: If deletion is successful, disconnect the account from Phyllo
+            if (deleteSuccess) {
               Swal.fire(
                 "Disconnected!",
-                `An account from ${platformName} has been disconnected, and its data has been deleted.`,
+                `The account has been successfully disconnected and its data has been deleted.`,
                 "info"
               );
-            } catch (error) {
-              console.error(
-                "Error deleting platform data from database:",
-                error
-              );
-              Swal.fire(
-                "Error",
-                `Failed to delete the ${platformName} data from the database.`,
-                "error"
-              );
+
+
+              // Manually disconnect the account from Phyllo
+              // await phylloInstance.disconnectAccount(accountId);
+            } else {
+              throw new Error("Failed to delete account data.");
             }
+
           }
-        );
+          catch (error) {
+            console.error("Error while disconnecting account:", error);
+            Swal.fire("Error", `An error occurred while disconnecting the account.`, "error");
+          } finally {
+            setBtnLoading(false);
+          }
+        });
+
+        // Register other Phyllo events
+        phylloInstance.on("accountConnected", async (accountId, workPlatformId, metadata) => {
+          setLoadingPlatform(null);
+          setBtnLoading(true);
+          setPlatformLoading(true);
+          try {
+            // Fetch social account data and save it to DB
+            const socialAccountData = await getSocialAccount({
+              workPlatformId,
+              userId,
+              limit: 10,
+              offset: 0,
+              platformName,
+            });
+
+            if (socialAccountData?.message === "Account data updated successfully!") {
+              // Swal.fire(
+              //   "Connected!",
+              //   `Successfully connected to ${platformName}. Fetching account data...`,
+              //   "success"
+              // );
+              Swal.fire("Success!", `Successfully fetched and saved account data for ${platformName}.`, "success");
+              setPlatformLoading(false);
+            } else {
+              throw new Error("No account data found.");
+            }
+          } catch (error) {
+            console.error("Error fetching or saving social account data:", error);
+            Swal.fire("Error", `Failed to fetch or save account data for ${platformName}. Account not added.`, "error");
+          } finally {
+            setBtnLoading(false);
+          }
+        });
 
         // Handle token expiration
         phylloInstance.on("tokenExpired", async (expiredToken, metadata) => {
-      const newToken = await fetchNewToken();
+          const newToken = await fetchNewToken();
           if (newToken) {
             phylloInstance.updateToken(newToken);
           } else {
@@ -196,36 +219,28 @@ setBtnLoading(true);
 
         // Handle user exiting the connection flow
         phylloInstance.on("exit", (reason, metadata) => {
-        
           setLoadingPlatform(null);
         });
 
         // Handle connection failure
-        phylloInstance.on(
-          "connectionFailure",
-          (errorCode, reason, metadata) => {
-            console.error("Connection failure event:", {
-              errorCode,
-              reason,
-              metadata,
-            });
-            setLoadingPlatform(null);
+        phylloInstance.on("connectionFailure", (errorCode, reason, metadata) => {
+          console.error("Connection failure event:", { errorCode, reason, metadata });
+          setLoadingPlatform(null);
 
-            Swal.fire(
-              "Connection Failed",
-              `Failed to connect to ${platformName}. Reason: ${
-                reason || "Unknown"
-              }`,
-              "error"
-            );
-          }
-        );
+          Swal.fire(
+            "Connection Failed",
+            `Failed to connect to ${platformName}.}`,
+            "error"
+          );
+        });
 
         // Open the PhylloConnect UI after event listeners are registered
         phylloInstance.open({ workPlatformId });
       } catch (error) {
         console.error("Error initializing PhylloConnect:", error);
         setLoadingPlatform(null);
+      } finally {
+        setBtnLoading(false);
       }
     } else {
       console.error("Phyllo SDK not loaded");
@@ -249,27 +264,26 @@ setBtnLoading(true);
     }
   };
 
+  const handleButtonClick = () => {
+    setDataFetch(true);
 
+    fetchInfluencerProfile(userId)
+      .then((response) => {
+        // Save the response data in state
+        setTimeout(() => {
+          setDataFetch(false);
+          // Navigate to the "applyforloan" page with the interestRate in state
+          navigate("/terms-conditions");
+        }, 2000);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
+  };
 
+  console.log("btnLoading", btnLoading);
+  console.log("datafetch", dataFetch,loadingPlatform,platformLoading);
 
-
-const handleButtonClick = () => {
-  setDataFetch(true);
-
-  fetchInfluencerProfile(userId)
-    .then((response) => {
-      // Save the response data in state
-      setTimeout(() => {
-        setDataFetch(false);
-        // Navigate to the "applyforloan" page with the interestRate in state
-        navigate("/applyforloan");
-      }, 2000);
-    })
-    .catch((error) => {
-      console.error("Error fetching data:", error);
-      // Handle the error as needed, show alert or error message
-    });
-};
   return (
     <div className="flex justify-center min-h-screen font-sans">
       <div className="bg-white shadow-md rounded-lg w-full max-w-md h-full min-h-screen flex flex-col">
@@ -297,8 +311,19 @@ const handleButtonClick = () => {
             Connect Your Accounts
           </h1>
           <div className="ml-auto relative group">
-            <button className="flex items-left" onClick={() => navigate('/profile')}>
-            {profileData?.image ? <img src={profileData?.image} alt="Profile" className="w-8 h-8 rounded-full bg-[#000000]" /> : <FaUser size={25} className="text-[#383838]" />}
+            <button
+              className="flex items-left"
+              onClick={() => navigate("/profile")}
+            >
+              {profileData?.image ? (
+                <img
+                  src={profileData?.image}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full bg-[#000000]"
+                />
+              ) : (
+                <FaUser size={25} className="text-[#383838]" />
+              )}
             </button>
             <span className="font-sans absolute top-[30px] right-0 w-max px-2 py-1 text-xs text-white bg-gray-600 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
               Profile
@@ -307,9 +332,12 @@ const handleButtonClick = () => {
         </div>
 
         <div className="p-4 bg-white flex-grow">
-          <p className="text-[16px] text-[#646464] font-semibold mb-4 text-left">
-            To calculate your social score for microloans, please connect your
-            social media accounts.
+          <p className="text-[16px] text-[#646464] font-semibold mb-4 text-center">
+          📱 *Connect Your Socials & Level Up Your Funding!* 🚀  
+Sync your social media accounts to instantly boost your social score. 
+Higher scores mean bigger opportunities, helping you secure funds to take your influencer game to the next level!
+
+
           </p>
 
           {platformLoading ? (
@@ -318,38 +346,51 @@ const handleButtonClick = () => {
             <div className="space-y-4">
               {platforms.map((platform) => (
                 <button
-                  key={platform.id}
-                  onClick={() => handleConnect(platform.name, platform.id)}
-                  className="flex items-center justify-between w-full p-4 rounded-md bg-[#F8F8F8] text-[16px] text-[#1F274A]"
-                >
-                  <span>
-                    {loadingPlatform === platform.id
-                      ? `Connecting ${
-                          platform.name === "X" ? "Twitter" : platform.name
-                        }...`
-                      : `Connect ${
-                          platform.name === "X" ? "Twitter" : platform.name
-                        }`}
-                  </span>
-                  <img src={verify} alt="Verify Icon" className="h-5 w-5" />
+                  key={platform.platform_id}
+                  disabled={dataFetch || btnLoading}
+                  onClick={() => handleConnect(platform.platform_name, platform.platform_id)}
+                  className={`flex items-center justify-between w-full p-4 rounded-md text-[16px] 
+   ${dataFetch || btnLoading
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      : 'bg-[#F8F8F8] text-[#1F274A]'}`}>
+
+                  {/* Left side: Icon + Text */}
+                  <div className="flex items-center">
+                    {platformLogos[platform.platform_name] && (
+                      <img
+                        src={platformLogos[platform.platform_name]}
+                        alt={`${platform.platform_name} Logo`}
+                        className="w-5 h-5 mr-3"
+                      />
+                    )}
+                    <span>
+                      {loadingPlatform === platform.platform_id
+                        ? `Connecting ${platform.platform_name === "X" ? "Twitter" : platform.platform_name}...`
+                        : `Connect ${platform.platform_name === "X" ? "Twitter" : platform.platform_name}`}
+                    </span>
+                  </div>
+
+                  {/* Right side: Verify icon */}
+                  {connectedPlatforms.includes(platform.platform_name) && (
+                    <img src={verify} alt="Verify Icon" className="h-5 w-5" />
+                  )}
                 </button>
               ))}
+
             </div>
           )}
         </div>
 
         <div className="p-4 mt-auto">
           <button
-          className={`w-full  py-3 text-[16px] font-semibold rounded-md hover:bg-[#469F5E] focus:outline-none ${
-            platformLoading
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed" // Disabled state
-              : "bg-[#5EB66E] text-white" // Enabled state
-          }`}
+            className={`w-full  py-3 text-[16px] font-semibold rounded-md hover:bg-[#469F5E] focus:outline-none ${platformLoading  || loadingPlatform !=null 
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed" // Disabled state
+                : "bg-[#5EB66E] text-white" // Enabled state
+              }`}
             onClick={handleButtonClick}
-            disabled={platformLoading}
-         
+            disabled={platformLoading || btnLoading || loadingPlatform}
           >
-           {dataFetch || btnLoading ?  "Processing..." :  "Next"}
+            {dataFetch || btnLoading  || loadingPlatform !=null  ? "Processing..." : "Next"}
           </button>
         </div>
       </div>
@@ -358,3 +399,4 @@ const handleButtonClick = () => {
 };
 
 export default ConnectAccounts;
+
