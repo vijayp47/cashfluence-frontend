@@ -23,27 +23,25 @@ const PlaidLink = () => {
 
 
   // Handle the success event after the user successfully links their account
-  const { open, ready } = usePlaidLink({
-    token: linkToken, // Use the link token from your backend
-    onSuccess: (public_token, metadata) => {
-       // Send the public_token to your backend to exchange for an access_token
-      fetch(`${BASE_URL}/plaid/public_token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ public_token }), // Send public token to backend
+ const { open, ready } = usePlaidLink({
+  token: linkToken,
+  onSuccess: (public_token, metadata) => {
+    fetch(`${BASE_URL}/plaid/public_token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ public_token }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        localStorage.setItem("plaidToken", data.accessToken);
       })
-        .then((response) => response.json())
-        .then((data) => {
-         
-          localStorage.setItem("plaidToken",data.accessToken)
-         
-        })
-        .catch((error) => console.error('Error:', error));
-    },
-  
-  });
+      .catch((error) => console.error('Error:', error));
+  },
+  //  Required to access account & routing numbers (for payouts)
+ products: ['auth'], 
+});
 
   // Render a loading message or the Plaid Link button based on the linkToken availability
   if (!linkToken) {

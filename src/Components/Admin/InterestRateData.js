@@ -17,7 +17,7 @@ const UserScoreDataDisplay = ({ userId }) => {
     try {
       const response = await getDataFromDatabaseAdmin({ userId });
       const profileData = response?.accountData;
-      console.log("profileData",profileData);
+    
       setInfluencerProfile(profileData);
       setActiveTab("Instagram"); // Default active tab
 
@@ -31,10 +31,7 @@ const UserScoreDataDisplay = ({ userId }) => {
   };
 
   const calculateEngagementRate = (data) => {
-
-    console.log("data---------------",data);
-    
-    if (data && (data?.subscriber_count || data?.follower_count)) {
+if (data && (data?.subscriber_count || data?.follower_count)) {
       const totalEngagements =
         (data?.average_like_count || 0) +
         (data?.average_comment_count || 0) +
@@ -79,9 +76,6 @@ const UserScoreDataDisplay = ({ userId }) => {
   
     setSelectedUser(mergedData);
   };
-  
-
-  console.log("selectedUserData",selectedUser);
   
 
   const renderAccountData = (platform) => {

@@ -49,7 +49,6 @@ const AdminDashboard = () => {
     fetchProfileData();
   }, []);
 
-  console.log("users..", users);
 
   const fetchUsers = async (page) => {
     setLoading(true);
@@ -81,7 +80,7 @@ const AdminDashboard = () => {
       );
 
       const data = await response.json();
-      console.log("data...", data);
+    
       if (data.success) {
         setUsers(data.users);
         setTotalPages(data.totalPages);

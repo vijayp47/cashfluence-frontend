@@ -1,27 +1,24 @@
-import React, { useState,useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { BiLogOutCircle } from "react-icons/bi";
 import { FaUser } from "react-icons/fa";
-import Swal from 'sweetalert2';
-import useStore from "./store/userProfileStore"; 
-
+import Swal from "sweetalert2";
+import useStore from "./store/userProfileStore";
 
 const VerificationInProgress = () => {
   const navigate = useNavigate();
   const [rangeValue, setRangeValue] = useState(75);
-  const { profileData,fetchProfileData } = useStore();
-  
+  const { profileData, fetchProfileData } = useStore();
+
   const handleRangeChange = (e) => {
     setRangeValue(e.target.value);
   };
-  
+
   useEffect(() => {
     if (!profileData) {
       fetchProfileData(); // Fetch data if not already present
     }
   }, [profileData, fetchProfileData]);
-
-
 
   return (
     <div className="flex justify-center  min-h-screen font-sans ">
@@ -29,10 +26,12 @@ const VerificationInProgress = () => {
         {/* Header */}
         <div>
           <div className="flex items-center  border-b  bg-[#0000]">
-            <button onClick={() => {
-      navigate('/kyc-profile');
-    }}  className="mr-4 text-[#383838] m-4 font-sans">
-
+            <button
+              onClick={() => {
+                navigate("/kyc-profile");
+              }}
+              className="mr-4 text-[#383838] m-4 font-sans"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6"
@@ -52,13 +51,24 @@ const VerificationInProgress = () => {
               Verification in Progress
             </h1>
             <div className="ml-auto relative group mr-5">
-            <button className="flex items-left" onClick={() => navigate('/profile')}>
-            {profileData?.image ? <img src={profileData?.image} alt="Profile" className="w-8 h-8 rounded-full bg-[#000000]" /> : <FaUser size={25} className="text-[#383838]" />}
-            </button>
-            <span className="font-sans absolute top-[30px] right-0 w-max px-2 py-1 text-xs text-white bg-gray-600 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-              Profile
-            </span>
-          </div>
+              <button
+                className="flex items-left"
+                onClick={() => navigate("/profile")}
+              >
+                {profileData?.image ? (
+                  <img
+                    src={profileData?.image}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full bg-[#000000]"
+                  />
+                ) : (
+                  <FaUser size={25} className="text-[#383838]" />
+                )}
+              </button>
+              <span className="font-sans absolute top-[30px] right-0 w-max px-2 py-1 text-xs text-white bg-gray-600 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                Profile
+              </span>
+            </div>
           </div>
 
           {/* Credit Check */}
@@ -127,33 +137,33 @@ const VerificationInProgress = () => {
                   border-radius: 50%;
                   background: white; /* White middle circle */
                   border: 4px solid #17cee74d; /* Blue outer border */
-                  box-shadow: inset 0 0 0 6px white, /* White inner circle */
-                    inset 0 0 0 12px #5eb66e; /* Larger grey circle */
+                  box-shadow: inset 0 0 0 6px white,
+                    /* White inner circle */ inset 0 0 0 12px #5eb66e; /* Larger grey circle */
                 }
 
                 input[type="range"]::-moz-range-thumb {
                   height: 30px;
                   width: 30px;
                   border-radius: 50%;
-                   background: white; /* White middle circle */
+                  background: white; /* White middle circle */
                   border: 4px solid #17cee74d; /* Blue outer border */
-                  box-shadow: inset 0 0 0 6px white, /* White inner circle */
-                    inset 0 0 0 12px #5eb66e; /* Larger grey circle */
+                  box-shadow: inset 0 0 0 6px white,
+                    /* White inner circle */ inset 0 0 0 12px #5eb66e; /* Larger grey circle */
                 }
 
                 /* Focus state with more blue glow */
                 input[type="range"]:focus::-webkit-slider-thumb {
-                 background: white; /* White middle circle */
+                  background: white; /* White middle circle */
                   border: 4px solid #17cee74d; /* Blue outer border */
-                  box-shadow: inset 0 0 0 6px white, /* White inner circle */
-                    inset 0 0 0 12px #5eb66e; /* Larger grey circle */
+                  box-shadow: inset 0 0 0 6px white,
+                    /* White inner circle */ inset 0 0 0 12px #5eb66e; /* Larger grey circle */
                 }
 
                 input[type="range"]:focus::-moz-range-thumb {
- background: white; /* White middle circle */
+                  background: white; /* White middle circle */
                   border: 4px solid #17cee74d; /* Blue outer border */
-                  box-shadow: inset 0 0 0 6px white, /* White inner circle */
-                    inset 0 0 0 12px #5eb66e; /* Larger grey circle */
+                  box-shadow: inset 0 0 0 6px white,
+                    /* White inner circle */ inset 0 0 0 12px #5eb66e; /* Larger grey circle */
                 }
               `}</style>
             </div>
@@ -164,21 +174,23 @@ const VerificationInProgress = () => {
 
             {/* Compliance Notice */}
             <div className="p-4 font-sans bg-[#5EB66E1A] rounded-lg font-normal text-[16px] text-[#646464] mb-4 text-left">
-            ✨ *Let’s Quickly Get You Verified!* ✨  
-We just need a few details to keep everything safe, secure, and super smooth for you. 
-Completing KYC helps us protect your account and ensure you're ready to unlock funds that fuel your influencer goals.
-
+              ✨ *Let’s Quickly Get You Verified!* ✨ We just need a few details
+              to keep everything safe, secure, and super smooth for you.
+              Completing KYC helps us protect your account and ensure you're
+              ready to unlock funds that fuel your influencer goals.
             </div>
           </div>
         </div>
 
         {/* Submit Button at Bottom */}
         <div className="p-4">
-          <button   onClick={() => {
-      navigate('/bank-details');
-    }}  className=" font-sans w-full bg-[#5EB66E] text-[#ffff] py-3 text-[16px] font-semibold rounded-md hover:bg-[#469F5E] focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
+          <button
+            onClick={() => {
+              navigate("/bank-details");
+            }}
+            className=" font-sans w-full bg-[#5EB66E] text-[#ffff] py-3 text-[16px] font-semibold rounded-md hover:bg-[#469F5E] focus:outline-none focus:ring-2 focus:ring-[#5EB66E]"
           >
-           Continue
+            Continue
           </button>
         </div>
       </div>

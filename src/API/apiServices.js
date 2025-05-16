@@ -451,6 +451,38 @@ export const getUserLoans = async (userId) => {
   }
 };
 
+export const checkLoanCompliance = async ({ state, loan_term, loan_amount, calculated_interest }) => {
+  try {
+    if (!state || !loan_term || !loan_amount || !calculated_interest) {
+      throw new Error("All parameters are required.");
+    }
+
+    // Get the authorization token
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error("Access token not found.");
+    }
+
+    const response = await axios.get(`${BASE_URL}/loans/check-loan`, {
+      params: {
+        state,
+        loan_term,
+        loan_amount,
+        calculated_interest,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Loan compliance check failed:", error);
+    throw error.response?.data || { message: "Something went wrong" };
+  }
+};
+
 export const getDataFromDatabaseAdmin = async ({ userId }) => {
   const token = localStorage.getItem("adminToken");
   if (!userId) {
@@ -705,6 +737,98 @@ export const fetchTransactions = async (startDate, endDate) => {
 };
 
 
+export const generateProcessToken = async (account_id,access_token) => {
+  const token = getAuthToken();
+  if (!access_token) {
+    throw new Error("Access token not found");
+  }
+
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/recipient/create-processor-token`,
+      { account_id, access_token },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      
+      }
+    );
+
+  if (response && response?.data?.processor_token) {  // <-- fix here
+      return response?.data?.processor_token;
+    } else {
+      throw new Error("Unexpected response format");
+    }
+  } catch (err) {
+    console.error("Error in generateProcessToken:", err.response || err);
+    throw new Error(err.response?.data?.error || "Failed to generate process token");
+  }
+};
+
+
+export const saveProcessToken = async (processToken,userId) => {
+ 
+  const plainToken = typeof processToken === 'string' 
+    ? processToken 
+    : (processToken?.processor_token || String(processToken));
+
+
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/recipient/save-process-token`,
+    {
+        process_token: processToken,
+        user_id: userId,  
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+       
+      }
+    );
+
+    return response.data;
+  } catch (err) {
+    console.error("Error saving process token:", err.response || err);
+    throw new Error(err.response?.data?.error || "Failed to save process token");
+  }
+};
+
+export const createCustomerPayout = async (payoutData) => {
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.post(
+      `${BASE_URL}/recipient/create-customer-payout`,
+      payoutData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+       
+      }
+    );
+
+    if (response && response.data) {
+      return response.data;
+    } else {
+      throw new Error("Unexpected response format");
+    }
+  } catch (err) {
+    console.error("Error in createCustomerPayout:", err.response || err);
+    throw new Error(err.response?.data?.error || "Failed to create payout");
+  }
+};
+
+
+
 export const fetchAverageBalance = async (startDate, endDate) => {
   const token = getAuthToken();
   const accessToken = localStorage.getItem("plaidToken");
@@ -734,6 +858,61 @@ export const fetchAverageBalance = async (startDate, endDate) => {
   } catch (err) {
     console.error("Error in fetchAverageBalance:", err.response || err);
     throw new Error(err.response?.data?.error || "An unexpected error occurred");
+  }
+};
+export const fetchPlaidProcessToken = async (userId) => {
+  const token = getAuthToken();
+
+  if (!userId) {
+    throw new Error("userId is required");
+  }
+
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/plaid/plaid-user/${userId}/process-token`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      
+      }
+    );
+
+    if (response?.data?.plaid_process_token) {
+      return response.data.plaid_process_token;
+    } else {
+      throw new Error('plaid_process_token not found in response');
+    }
+  } catch (err) {
+    console.error("Error in fetchPlaidProcessToken:", err.response || err);
+    throw new Error(err.response?.data?.error || "An unexpected error occurred");
+  }
+};
+
+
+export const fetchIdentityDataByAccountId = async (accountId) => {
+  if (!accountId) throw new Error('accountId is required');
+
+  const token = getAuthToken();
+
+  try {
+    const response = await axios.get(`${BASE_URL}/plaid/account/${accountId}/identity-data`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 10000,
+    });
+
+    if (response?.data?.identity_data) {
+      return response.data.identity_data;
+    } else {
+      throw new Error('identity_data not found in response');
+    }
+  } catch (error) {
+    console.error('Error fetching identity_data:', error.response || error);
+    throw new Error(error.response?.data?.error || 'Failed to fetch identity data');
   }
 };
 
@@ -853,15 +1032,6 @@ export const getUserProfile = async () => {
     throw new Error(error.response?.data?.message || "Failed to fetch profile");
   }
 };
-
-
-
-
-
-
-
-
-
 
 export const updatePassword = async ({ currentPassword, newPassword , confirmPassword}) => {
   // Replace "userToken" with the actual token key if needed

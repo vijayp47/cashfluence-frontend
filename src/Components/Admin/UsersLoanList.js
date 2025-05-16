@@ -14,7 +14,9 @@ const UsersLoanList = () => {
   const location = useLocation();
   const { user, profileData } = location.state || {};
   const [userData, setUserData] = useState(user);
-  const loanData = userData?.loans || [];
+ 
+  const loanData = user?.loans || [];
+
   const [loanMinAmount, setLoanMinAmount] = useState(500);
   const [loanMaxAmount, setLoanMaxAmount] = useState(2000);
   const [loanStatus, setLoanStatus] = useState("All");
@@ -46,7 +48,7 @@ const UsersLoanList = () => {
       const data = await response.json();
       if (data.success) {
         setUserData(data.user);
-        console.log("new Api" , data.user)
+      
       } else {
         console.error("Failed to fetch user data");
       }
@@ -60,11 +62,9 @@ const UsersLoanList = () => {
     fetchPlaidUserData();
   }, [userId]);
    const fetchPlaidUserData = async () => {
-    console.log("Fetching Plaid user data...");
-  
-    try {
+  try {
       const token = localStorage.getItem('adminToken');
-      console.log("Token:", token);
+   
   setLoader(true);
       const response = await fetch(`${BASE_URL}/plaid/get-plaid-user`, {
         method: 'POST',
@@ -79,9 +79,7 @@ const UsersLoanList = () => {
   
       const data = await response.json();
 
-      console.log("data-------",data);
-      
-      if (data?.message == "Plaid User data retrieved successfully") {
+    if (data?.message == "Plaid User data retrieved successfully") {
         setPlaidUserData(data);
         setLoader(false);
         console.log("Fetched User Data:", data.user);
@@ -110,15 +108,13 @@ const UsersLoanList = () => {
     setSelectedLoan(updatedLoan);
   }
   };
-  
+
 
   const filteredLoans = loanData.filter((loan) => {
  
     const withinRange =
       loan.amount >= loanMinAmount && loan.amount <= loanMaxAmount;
     const matchesStatus = loanStatus === "All" || loan.status === loanStatus;
-    // console.log("Transaction data in loan:", loan.transactions); 
-    // const hasFineEmailSent = loan.transactions?.some(tran => tran.fine_email_sent === true)
     
 
     const loansWithFineEmailSent = loanData.filter(loan => 
@@ -130,37 +126,6 @@ const UsersLoanList = () => {
 
   const loanDetailRef = useRef(null);
  
-
-
-  // useEffect(() => {
-  //   const fetchWeights = async () => {
-  //     try {
-  //       const { influencerWeights, rateWeights } = await getWeightConfig();
-  
-  //       console.log("influencerWeights-----------", influencerWeights); // Debug
-  //       console.log("rateWeights", rateWeights); // Debug
-  
-  //       setWeights({
-  //         influencer_engagementRate: influencerWeights.engagementRate,
-  //         influencer_incomeConsistency: influencerWeights.incomeConsistency,
-  //         influencer_platformDiversity: influencerWeights.platformDiversity,
-  //         influencer_contentQuality: influencerWeights.contentQuality,
-  //         rate_paymentHistory: rateWeights.paymentHistory,
-  //         rate_influencerScore: rateWeights.influencerScore,
-  //       });
-        
-  //     } catch (error) {
-  //       console.error("Error fetching weights:", error);
-  //     }
-  //   };
-  
-  //   fetchWeights();
-  // }, []);
-  
-  // const openModal = () => setIsModalOpen(true);
-  // const closeModal = () => setIsModalOpen(false);
-
-  // Show loading or modal only after weights are fetched
  
 
 
@@ -183,7 +148,6 @@ const UsersLoanList = () => {
   };
   const handleLoanDetails = (loan,id) => {
 
-    console.log("loan.....", loan)
     setShowLoanDetails(true);
     setSelectedLoan(loan);
     if (loanDetailRef.current) {
@@ -394,6 +358,10 @@ const hasFineEmailSent = (loan) => {
             Loan Records 
           </h2>
         
+
+     
+     
+
           {loanData.length > 0 ? (
             <>
               {/* Desktop View (Hidden on Mobile) */}

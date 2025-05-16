@@ -28,6 +28,8 @@ const platformLogos = {
   LinkedIn: require("../assets/images/logo.jpg"),
   YouTube: require("../assets/images/logos_youtube-icon.png"),
   TikTok: require("../assets/images/logos_tiktok-icon.png"),
+  Twitch: require("../assets/images/logos_twitch.png"),
+  X: require("../assets/images/skill-icons_twitter.png"),
 };
 const ConnectAccounts = () => {
   const navigate = useNavigate();
@@ -48,9 +50,7 @@ const ConnectAccounts = () => {
     const fetchConnectedPlatforms = async () => {
       if (userId) {
         const platforms = await getConnectedPlatforms(userId);
-        console.log("setConnectedPlatforms", platforms);
-
-        setConnectedPlatforms(platforms.connectedPlatforms || []);
+       setConnectedPlatforms(platforms.connectedPlatforms || []);
       }
     };
 
@@ -81,8 +81,6 @@ const ConnectAccounts = () => {
             setToken(sdkToken.sdk_token);
 
             const platformData = await getPlatFormNameAndId();
-            console.log("platformData----1", platformData);
-
             setPlatforms(platformData);
           }
 
@@ -94,15 +92,13 @@ const ConnectAccounts = () => {
         const newUserId = userData.user_id;
         localStorage.setItem("userId", newUserId);
         setUserId(newUserId);
-
         if (isComponentMounted) {
           const sdkToken = await createSDKtoken();
 
           setToken(sdkToken.sdk_token);
 
           const platformData = await getPlatFormNameAndId();
-          console.log("platformData----2", platformData);
-          setPlatforms(platformData);
+         setPlatforms(platformData);
         }
 
         setPlatformLoading(false);
@@ -139,16 +135,13 @@ const ConnectAccounts = () => {
         // Step 1: Intercept the account disconnect event
         phylloInstance.on("accountDisconnected", async (accountId, workPlatformId, userId) => {
           setBtnLoading(true);
-          console.log("accountId,accountId", accountId);
-
-          // console.log("metadata ",metadata );
+        
 
           try {
 
             // Step 1: Delete platform data first (from your database)
             const deleteSuccess = await deletePlatformDataFromDatabase({ userId, platformName, accountId });
-            console.log("deleteSuccess", deleteSuccess);
-
+          
             // Step 2: If deletion is successful, disconnect the account from Phyllo
             if (deleteSuccess) {
               Swal.fire(
@@ -281,9 +274,6 @@ const ConnectAccounts = () => {
       });
   };
 
-  console.log("btnLoading", btnLoading);
-  console.log("datafetch", dataFetch,loadingPlatform,platformLoading);
-
   return (
     <div className="flex justify-center min-h-screen font-sans">
       <div className="bg-white shadow-md rounded-lg w-full max-w-md h-full min-h-screen flex flex-col">
@@ -341,7 +331,11 @@ Higher scores mean bigger opportunities, helping you secure funds to take your i
           </p>
 
           {platformLoading ? (
-            <Loader /> // Show loader while fetching platforms
+          
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Loader />
+           
+          </div>
           ) : (
             <div className="space-y-4">
               {platforms.map((platform) => (
@@ -350,7 +344,7 @@ Higher scores mean bigger opportunities, helping you secure funds to take your i
                   disabled={dataFetch || btnLoading}
                   onClick={() => handleConnect(platform.platform_name, platform.platform_id)}
                   className={`flex items-center justify-between w-full p-4 rounded-md text-[16px] 
-   ${dataFetch || btnLoading
+              ${dataFetch || btnLoading
                       ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                       : 'bg-[#F8F8F8] text-[#1F274A]'}`}>
 

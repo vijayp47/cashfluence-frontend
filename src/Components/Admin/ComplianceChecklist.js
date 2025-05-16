@@ -5,7 +5,6 @@ import emptyImage from "../../assets/images/no-camera.png"
 const ComplianceChecklist = ({data}) => {
   const [selectedSection, setSelectedSection] = useState(null);
   const [modalData, setModalData] = useState(null);
-  console.log("data------------",data);
 
 const dummyImage = "https://via.placeholder.com/150"; // Fallback dummy image URL
 
@@ -319,9 +318,7 @@ const renderAntiFraudDetails = (antiFraudDetails) => {
   };
   
   const renderRegulatoryDetails = (regulatoryDetails) => {
-    console.log("regulatoryDetails", regulatoryDetails);
-  
-    if (!regulatoryDetails) {
+  if (!regulatoryDetails) {
       return (
         <div className="p-6 bg-gray-50 rounded-lg shadow-lg w-[80%]">
           <p className="text-gray-500">No data available for Regulatory Requirements.</p>

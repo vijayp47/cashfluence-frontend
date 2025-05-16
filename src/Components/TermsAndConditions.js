@@ -22,7 +22,7 @@ const legalSections = [
 
 const TermsAndConditions = () => {
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false); // New loading state
   const { profileData, fetchProfileData } = useStore();
@@ -121,7 +121,7 @@ const TermsAndConditions = () => {
               <div className="border-4 border-t-4 border-gray-200 border-t-[#fff] w-5 h-5 rounded-full animate-spin"></div>
             </span>
             ) : (
-              'Submit Application'
+              'Submit'
             )}
           </button>
         </div>

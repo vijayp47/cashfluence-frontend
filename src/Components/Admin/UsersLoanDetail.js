@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
-import { updateStatusAdmin } from "../../API/apiServices";
+import { updateStatusAdmin,createCustomerPayout ,fetchPlaidProcessToken,fetchIdentityDataByAccountId} from "../../API/apiServices";
 import HighRisk from "../../assets/images/HighRisk.svg";
 import LowRisk from "../../assets/images/LowRisk.svg";
 import NormalRisk from "../../assets/images/NormalRisk.svg";
+import { ToastContainer, toast } from "react-toastify";
 const UsersLoanDetail = ({
   selectedLoan,
   user,
@@ -16,8 +17,6 @@ const UsersLoanDetail = ({
   const [transactionId, setTransactionId] = useState("");
   const [approvalDate] = useState(new Date().toLocaleDateString());
   const [showLoanDetails, setShowLoanDetails] = useState(false);
-  console.log("user----", user);
-
 
   const [repayments, setRepayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +24,24 @@ const UsersLoanDetail = ({
   const [totalAmountToPay, setTotalAmountToPay] = useState(0);
   const [totalAmountPaid, setTotalAmountPaid] = useState(0);
   const [amountPending, setAmountPending] = useState(0);
+
+
+  const [processToken, setProcessToken] = useState(null);
+
+  useEffect(() => {
+
+    const getToken = async () => {
+      try {
+    const plaidToken = await fetchPlaidProcessToken(user?.id);
+        setProcessToken(plaidToken);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+     getToken();
+  }, [user]);
+
 
   useEffect(() => {
     if (!selectedLoan?.id || !user?.id) return;
@@ -68,14 +85,11 @@ const UsersLoanDetail = ({
         : 0;
 
       setTotalAmountPaid(paidAmount);
-console.log("paidAmount---------",paidAmount);
 
       // Calculate pending amount
       const pendingAmount = (totalAmount).toFixed(2) - paidAmount;
 
-      console.log("totalAmount",totalAmount);
-      console.log("paidAmount",paidAmount);
-      console.log("pendingAmount",pendingAmount);
+    
       
       setAmountPending(pendingAmount);
 
@@ -105,13 +119,33 @@ console.log("paidAmount---------",paidAmount);
     }
   }, [selectedLoan, repayments]); // Re-run when repayments or selectedLoan changes
 
+ const [identityData, setIdentityData] = useState(null);
+  
+  useEffect(() => {
+   const Id = selectedLoan?.fromAccount?.accountId ;
+  // const Id = "ywz7LNMWJVFZk7AWxr74fGoZwgnNPQi4X5ynj";
+    const loadIdentityData = async () => {
+      try {
+        const data = await fetchIdentityDataByAccountId(Id);
+        setIdentityData(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
 
+    if (selectedLoan) {
+      loadIdentityData();
+    }
+  }, [selectedLoan]);
+
+console.log("identityData",identityData);
 
 
   const handleStatusChange = async (loanId, status) => {
     if (status === "Approved") {
       const result = await Swal.fire({
         title: "Approval Form",
+        
         html: `
           <div style="text-align: left; font-family: Arial, sans-serif;">
             <div style="margin-bottom: 15px;">
@@ -138,6 +172,7 @@ console.log("paidAmount---------",paidAmount);
           </div>
         `,
         showCancelButton: true,
+        
         confirmButtonText: `Approve`,
         cancelButtonText: "Cancel",
         focusConfirm: false,
@@ -148,17 +183,22 @@ console.log("paidAmount---------",paidAmount);
           const currentDate = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
           approvalDateInput.value = currentDate; // Set the value to the input
         },
-        preConfirm: () => {
+        preConfirm: async () => {
+           const confirmBtn = Swal.getConfirmButton();
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Approving...`;
           const transactionIdInput =
             document.getElementById("transactionId").value;
           const approvalDate = document.getElementById("approvalDate").value;
 
           // Validation: Ensure both fields are filled
           if (!transactionIdInput) {
+           confirmBtn.disabled = false;
             Swal.showValidationMessage("Please enter the Transaction ID");
             return false;
           }
           if (!approvalDate) {
+               confirmBtn.innerHTML = `Approve`;
             Swal.showValidationMessage("Please enter the Approval Date.");
             return false;
           }
@@ -170,9 +210,35 @@ console.log("paidAmount---------",paidAmount);
 
           // Ensure the approval date is not in the past
           if (selectedDate < currentDate) {
+            confirmBtn.disabled = false;
+    confirmBtn.innerHTML = `Approve`;
             Swal.showValidationMessage("Approval Date cannot be in the past.");
             return false;
           }
+
+            try {
+        
+        await createCustomerPayout({
+          name: identityData?.name,
+          email: identityData?.email,
+          phone:`+${identityData?.phone_number}`,
+          ip_address: user?.ipAddress || "127.0.0.1",
+          plaid_token: processToken,
+        
+          amount: parseInt(selectedLoan?.amount, 10),
+          description: "Loan disbursement",
+          payment_date: approvalDate,
+          external_id: `loan_${loanId}`,
+        });
+
+      } catch (payoutErr) {
+         confirmBtn.disabled = false;
+    confirmBtn.innerHTML = `Approve`;
+        console.error("Payout Error:", payoutErr);
+        Swal.close();
+        toast.error(payoutErr?.message || "Failed to create payout.");
+        return; // STOP further execution if payout fails
+      }
 
           return { transactionIdInput, approvalDate }; // Return values to be used later
         },
@@ -192,7 +258,6 @@ console.log("paidAmount---------",paidAmount);
           didOpen: () => Swal.showLoading(),
           icon: "info",
         });
-console.log("profileData",profileData);
 
         try {
           await updateStatusAdmin({
@@ -245,6 +310,9 @@ console.log("profileData",profileData);
           icon: "info",
         });
 
+
+   
+   
         try {
           await updateStatusAdmin({
             loanId,
@@ -273,7 +341,6 @@ console.log("profileData",profileData);
     }
   };
 
-  console.log("error", error);
 
 
   return (
@@ -376,9 +443,11 @@ console.log("profileData",profileData);
               </h2>
               <div className="space-y-4 w-full">
                 <div className="flex justify-between">
-                  <span className="font-sans font-normal text-[16px] text-[#646464]">
-                    Loan Amount
-                  </span>
+                 <span className="font-sans font-normal text-[16px] text-[#646464]">
+  {selectedLoan?.fee != null
+    ? `Loan Amount including Fee $${Number(selectedLoan.fee)}`
+    : `Loan Amount`}
+</span>
                   <span className="px-5 py-1 font-sans border-2 font-bold rounded-lg text-[#242424] border-[#242424]">
                     ${selectedLoan?.amount || "N/A"}
                   </span>
@@ -493,6 +562,7 @@ console.log("profileData",profileData);
             </table>
           </div>
         </div>
+        <ToastContainer position="top-center" autoClose={2000} />
       </div>
     </div>
   );

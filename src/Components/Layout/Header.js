@@ -37,11 +37,7 @@ const Header = ({
       const fetchWeights = async () => {
         try {
           const { influencerWeights, rateWeights } = await getWeightConfig();
-    
-          console.log("influencerWeights-----------1", influencerWeights); // Debug
-          console.log("rateWeights", rateWeights); // Debug
-    
-          setWeights({
+    setWeights({
             influencer_engagementRate: influencerWeights.engagementRate,
             influencer_incomeConsistency: influencerWeights.incomeConsistency,
             influencer_platformDiversity: influencerWeights.platformDiversity,

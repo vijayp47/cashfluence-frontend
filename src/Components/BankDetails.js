@@ -35,7 +35,6 @@ const UserBankDetails = () => {
   
   const getAuthToken = () => localStorage.getItem('userToken') || '';
   const userId = localStorage.getItem("user_id");
-  console.log(accountData,"accountData")
   const calculateAverageRiskScoreAndLevel = (data) => {
     const riskScores = data.results.map((item) => parseFloat(item.riskScore));
     const totalRiskScore = riskScores.reduce((sum, score) => sum + score, 0);
@@ -139,11 +138,14 @@ const UserBankDetails = () => {
   }, []);
 
   const { open, ready } = usePlaidLink({
+    
     token: linkToken,
     onSuccess: async (public_token, metadata) => {
+  
       const token = getAuthToken();
       try {
         setLoading(true);
+      
         const response = await fetch(`${BASE_URL}/plaid/public_token`, {
           method: 'POST',
           headers: {

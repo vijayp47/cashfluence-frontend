@@ -37,7 +37,7 @@ const ContactSupport = () => {
 
     try {
       const response = await sendMessage(message); // Call the sendMessage API function
-   
+
       if (response.success) {
         setLoading(false); // Stop loading after API call finishes
         toast.success(response?.message || "Message Sent!");
@@ -47,7 +47,9 @@ const ContactSupport = () => {
       }
     } catch (err) {
       setLoading(false); // Stop loading if there's an error
-      toast.error(err?.message || "Something went wrong. Please try again later.");
+      toast.error(
+        err?.message || "Something went wrong. Please try again later."
+      );
     } finally {
       setLoading(false);
     }
@@ -105,10 +107,9 @@ const ContactSupport = () => {
 
             <div className="p-4 text-left">
               <p className="font-sans text-[#646464] mb-4 font-bold text-[15px]">
-              💬 *Need Help? We've Got You!*  
-Drop us a line using the form below, and our friendly support crew will get back to you ASAP. 
-We're here to keep your influencer journey stress-free!
-
+                💬 *Need Help? We've Got You!* Drop us a line using the form
+                below, and our friendly support crew will get back to you ASAP.
+                We're here to keep your influencer journey stress-free!
               </p>
 
               {/* Message Textarea */}

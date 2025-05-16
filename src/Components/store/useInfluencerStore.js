@@ -57,7 +57,6 @@ const calculatePlatformDiversity = (platforms) => {
       account.income_status === 'SYNCED' && account.identity_status === 'SYNCED' &&
       account.audience_status === 'SYNCED' && account.engagement_status === 'SYNCED'
     );
-console.log("activeAccounts",activeAccounts);
 
     if (activeAccounts.length > 0) {
       const totalPoints = activeAccounts.reduce((sum, account) => {
@@ -133,12 +132,6 @@ const calculateInfluencerScore = (data, weights) => {
   const activePlatforms = Object.values(contentQualityScores).filter(score => score > 0).length;
   const averageContentQuality = Object.values(contentQualityScores)
     .reduce((sum, score) => sum + score, 0) / (activePlatforms || 1);
-console.log("totalEngagementRate",totalEngagementRate);
-console.log("incomeConsistency",incomeConsistency);
-
-console.log("platformDiversity",platformDiversity);
-
-console.log("averageContentQuality",averageContentQuality);
 
   // Calculate final score with weights
   const influencerScore =

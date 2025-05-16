@@ -42,6 +42,7 @@ import Payment from "./Components/Payment";
 import ContactRecord from "./Components/ContactRecord";
 import AdminGraph from "./Components/Admin/AdminGraph";
 import AdminAnalytics from "./Components/Admin/AdminAnalytics";
+import LandingPage from "./Components/LandingPage";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [phylloSDKLoaded, setPhylloSDKLoaded] = useState(false);
@@ -115,6 +116,15 @@ const Tracking = () => {
               <ProtectedRoute>
                 <ProfileKYCForm Image={image} />
               </ProtectedRoute>
+            }
+          />
+           <Route
+            exact
+            path="/landing"
+            element={
+              
+                <LandingPage />
+            
             }
           />
           <Route
