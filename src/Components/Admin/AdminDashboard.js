@@ -24,8 +24,8 @@ const AdminDashboard = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [profileData, setProfileData] = useState([]);
-  const [loanMinAmount, setLoanMinAmount] = useState(500);
-  const [loanMaxAmount, setLoanMaxAmount] = useState(2000);
+  const [loanMinAmount, setLoanMinAmount] = useState(200);
+  const [loanMaxAmount, setLoanMaxAmount] = useState(5000);
   const [loanStatus, setLoanStatus] = useState("All");
   const [repaymentFilter, setRepaymentFilter] = useState("All");
   const [accountName, setAccountName] = useState("");
@@ -49,6 +49,7 @@ const AdminDashboard = () => {
     fetchProfileData();
   }, []);
 
+  console.log("users..", users);
 
   const fetchUsers = async (page) => {
     setLoading(true);
@@ -80,7 +81,7 @@ const AdminDashboard = () => {
       );
 
       const data = await response.json();
-    
+      console.log("data...", data);
       if (data.success) {
         setUsers(data.users);
         setTotalPages(data.totalPages);
@@ -258,8 +259,8 @@ const AdminDashboard = () => {
   const clearFilters = () => {
     setLoanStatus("All");
     setRepaymentFilter("All");
-    setLoanMinAmount(500);
-    setLoanMaxAmount(2000);
+    setLoanMinAmount(200);
+    setLoanMaxAmount(5000);
     setSearchQuery("");
     setAccountName("");
     setAccountNumber("");
@@ -888,16 +889,16 @@ const AdminDashboard = () => {
                         </label>
                         <input
                           type="range"
-                          min="500"
-                          max="2000"
+                          min="200"
+                          max="5000"
                           value={loanMinAmount}
                           onChange={handleMinChange}
                           className="w-full mt-2 accent-[#5EB66E]"
                         />
                         <input
                           type="range"
-                          min="500"
-                          max="2000"
+                          min="200"
+                          max="5000"
                           value={loanMaxAmount}
                           onChange={handleMaxChange}
                           className="w-full mt-2 accent-[#5EB66E]"
@@ -913,8 +914,8 @@ const AdminDashboard = () => {
                             accountNumber === "" &&
                             institutionName === "" &&
                             loanStatus === "All" &&
-                            loanMaxAmount === 2000 &&
-                            loanMinAmount === 500 &&
+                            loanMaxAmount === 5000 &&
+                            loanMinAmount === 200 &&
                             overdueStatus === "All"
                           }
                           className={`w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 text-sm font-medium rounded-md text-white transition-all duration-300 
@@ -923,8 +924,8 @@ const AdminDashboard = () => {
         accountNumber === "" &&
         institutionName === "" &&
         loanStatus === "All" &&
-        loanMaxAmount === 2000 &&
-        loanMinAmount === 500 &&
+        loanMaxAmount === 5000 &&
+        loanMinAmount === 200 &&
         overdueStatus === "All"
           ? "bg-gray-400 cursor-not-allowed"
           : "bg-[#5EB66E] hover:bg-[#4FA75E] shadow-md"

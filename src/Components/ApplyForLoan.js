@@ -403,7 +403,13 @@ const accessToken = selectedInstitution?.accessToken;
     }
   } catch (err) {
     console.error("Error generating process token:", err.message);
-    toast.error(` ${err.message}`);
+    let userFriendlyMsg = err.message;
+
+if (err.message.includes("account_id specified does not belong to a depository account")) {
+  userFriendlyMsg = "Please select a valid depository account for disbursement.";
+}
+
+toast.error(userFriendlyMsg);
     setIsTokenForDisbursementLoading(false);
     return; // Stop execution here
   }
