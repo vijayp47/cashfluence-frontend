@@ -17,8 +17,8 @@ const UsersLoanList = () => {
  
   const loanData = user?.loans || [];
 
-  const [loanMinAmount, setLoanMinAmount] = useState(500);
-  const [loanMaxAmount, setLoanMaxAmount] = useState(2000);
+  const [loanMinAmount, setLoanMinAmount] = useState(200);
+  const [loanMaxAmount, setLoanMaxAmount] = useState(5000);
   const [loanStatus, setLoanStatus] = useState("All");
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [showLoanDetails,setShowLoanDetails]=useState(false);
@@ -197,16 +197,16 @@ const hasFineEmailSent = (loan) => {
                 </label>
                 <input
                   type="range"
-                  min="500"
-                  max="2000"
+                  min="200"
+                  max="5000"
                   value={loanMinAmount}
                   onChange={handleMinChange}
                   className="w-full mt-2 accent-[#5EB66E]"
                 />
                 <input
                   type="range"
-                  min="500"
-                  max="2000"
+                  min="200"
+                  max="5000"
                   value={loanMaxAmount}
                   onChange={handleMaxChange}
                   className="w-full mt-2 accent-[#5EB66E]"

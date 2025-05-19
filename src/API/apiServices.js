@@ -801,7 +801,7 @@ export const saveProcessToken = async (processToken,userId) => {
 };
 
 export const createCustomerPayout = async (payoutData) => {
-  const token = getAuthToken();
+  const token = localStorage.getItem("adminToken");
 
   try {
     const response = await axios.post(
@@ -861,7 +861,9 @@ export const fetchAverageBalance = async (startDate, endDate) => {
   }
 };
 export const fetchPlaidProcessToken = async (userId) => {
-  const token = getAuthToken();
+  const token = localStorage.getItem("adminToken");
+
+console.log("userId",userId);
 
   if (!userId) {
     throw new Error("userId is required");
@@ -878,6 +880,7 @@ export const fetchPlaidProcessToken = async (userId) => {
       
       }
     );
+console.log("response?.data?.plaid_process_token",response?.data);
 
     if (response?.data?.plaid_process_token) {
       return response.data.plaid_process_token;
@@ -894,7 +897,7 @@ export const fetchPlaidProcessToken = async (userId) => {
 export const fetchIdentityDataByAccountId = async (accountId) => {
   if (!accountId) throw new Error('accountId is required');
 
-  const token = getAuthToken();
+  const token = localStorage.getItem("adminToken");
 
   try {
     const response = await axios.get(`${BASE_URL}/plaid/account/${accountId}/identity-data`, {

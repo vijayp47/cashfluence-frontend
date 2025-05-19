@@ -14,6 +14,7 @@ const UsersLoanDetail = ({
   onUpdateStatus,
 }) => {
   const location = useLocation();
+    const BASE_URL = process.env.REACT_APP_BASE_URL;
   const [transactionId, setTransactionId] = useState("");
   const [approvalDate] = useState(new Date().toLocaleDateString());
   const [showLoanDetails, setShowLoanDetails] = useState(false);
@@ -32,7 +33,10 @@ const UsersLoanDetail = ({
 
     const getToken = async () => {
       try {
+       
+        
     const plaidToken = await fetchPlaidProcessToken(user?.id);
+   
         setProcessToken(plaidToken);
       } catch (err) {
         setError(err.message);
@@ -49,7 +53,8 @@ const UsersLoanDetail = ({
     const fetchRepayments = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/stripe/repayment-transactions?user_id=${user.id}&loan_id=${selectedLoan.id}`
+        
+          `${BASE_URL}/stripe/repayment-transactions?user_id=${user.id}&loan_id=${selectedLoan.id}`
         );
       
         
@@ -96,7 +101,7 @@ const UsersLoanDetail = ({
       // If amountPending is 0, mark the loan as complete by updating the status
       if (pendingAmount === 0) {
         // Send the request to update the loan status
-        axios.post(`http://localhost:3000/api/loans/loanstatus/${selectedLoan?.id}`, { isLoanComplete: true })
+        axios.post(`${BASE_URL}/loans/loanstatus/${selectedLoan?.id}`, { isLoanComplete: true })
           .then(response => {
             console.log('Loan status updated:', response.data);
           })
@@ -107,7 +112,7 @@ const UsersLoanDetail = ({
       }
       else if (pendingAmount !== 0) {
         // Send the request to update the loan status
-        axios.post(`http://localhost:3000/api/loans/loanstatus/${selectedLoan?.id}`, { isLoanComplete: false })
+        axios.post(`${BASE_URL}/loans/loanstatus/${selectedLoan?.id}`, { isLoanComplete: false })
           .then(response => {
             console.log('Loan status updated:', response.data);
           })
@@ -138,10 +143,7 @@ const UsersLoanDetail = ({
     }
   }, [selectedLoan]);
 
-console.log("identityData",identityData);
-
-
-  const handleStatusChange = async (loanId, status) => {
+const handleStatusChange = async (loanId, status) => {
     if (status === "Approved") {
       const result = await Swal.fire({
         title: "Approval Form",
@@ -154,11 +156,7 @@ console.log("identityData",identityData);
           }" readonly 
                 style="width: 100%; padding: 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 5px; background-color: #f7f7f7;"/>
             </div>
-            <div style="margin-bottom: 15px;">
-              <label for="transactionId" style="font-weight: bold; color: #4e4e4e;">Transaction ID:</label>
-              <input type="text" id="transactionId" oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')" 
-                style="width: 100%; padding: 10px; font-size: 14px; border: 1px solid #ccc; border-radius: 5px;"/>
-            </div>
+         
             <div style="margin-bottom: 15px;">
               <label for="amount" style="font-weight: bold; color: #4e4e4e;">Amount:</label>
               <input type="text" id="amount" value="${selectedLoan?.amount
@@ -187,16 +185,16 @@ console.log("identityData",identityData);
            const confirmBtn = Swal.getConfirmButton();
   confirmBtn.disabled = true;
   confirmBtn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> Approving...`;
-          const transactionIdInput =
-            document.getElementById("transactionId").value;
+          // const transactionIdInput =
+          //   document.getElementById("transactionId").value;
           const approvalDate = document.getElementById("approvalDate").value;
 
           // Validation: Ensure both fields are filled
-          if (!transactionIdInput) {
-           confirmBtn.disabled = false;
-            Swal.showValidationMessage("Please enter the Transaction ID");
-            return false;
-          }
+          // if (!transactionIdInput) {
+          //  confirmBtn.disabled = false;
+          //   Swal.showValidationMessage("Please enter the Transaction ID");
+          //   return false;
+          // }
           if (!approvalDate) {
                confirmBtn.innerHTML = `Approve`;
             Swal.showValidationMessage("Please enter the Approval Date.");
@@ -237,10 +235,10 @@ console.log("identityData",identityData);
         console.error("Payout Error:", payoutErr);
         Swal.close();
         toast.error(payoutErr?.message || "Failed to create payout.");
-        return; // STOP further execution if payout fails
+        return false; // STOP further execution if payout fails
       }
 
-          return { transactionIdInput, approvalDate }; // Return values to be used later
+          return {approvalDate }; // Return values to be used later
         },
         icon: "info",
         customClass: {
@@ -249,7 +247,7 @@ console.log("identityData",identityData);
       });
 
       if (result.isConfirmed) {
-        const { transactionIdInput, approvalDate } = result.value;
+        const { approvalDate } = result.value;
 
         Swal.fire({
           title: "Processing...",
@@ -267,7 +265,7 @@ console.log("identityData",identityData);
             adminName: profileData?.firstName + " " + profileData?.lastName,
             adminEmail: profileData?.email,
             userEmail: user?.email,
-            transactionId: transactionIdInput,
+            // transactionId: transactionIdInput,
             userName: user?.firstName + " " + user?.lastName,
             loanAmount: selectedLoan?.amount,
             approvalDate,
