@@ -15,7 +15,7 @@ const UsersLoanList = () => {
   const { user, profileData } = location.state || {};
   const [userData, setUserData] = useState(user);
  
-  const loanData = user?.loans || [];
+  // const loanData = user?.loans || [];
 
   const [loanMinAmount, setLoanMinAmount] = useState(200);
   const [loanMaxAmount, setLoanMaxAmount] = useState(5000);
@@ -26,9 +26,11 @@ const UsersLoanList = () => {
   const [plaidUser,setPlaidUserData]= useState(null);
   const [loader, setLoader] = useState(true);
   const navigate = useNavigate();
-  // const loanData = user?.loans || []
+   const loanData = userData?.loans || []
+  //  const loanData = user?.loans || [];
 
-  const userId = userData.id
+  const userId = userData.id;
+  // const userId = userData.id
   const [weights, setWeights] = useState(null); // Start with null until data is fetched
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -124,6 +126,9 @@ const UsersLoanList = () => {
     return withinRange && matchesStatus ;
   });
 
+
+  console.log("filteredLoans------------",filteredLoans);
+  
   const loanDetailRef = useRef(null);
  
  
