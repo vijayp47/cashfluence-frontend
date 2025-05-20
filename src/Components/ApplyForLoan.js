@@ -18,7 +18,9 @@ import {
   checkLoanCompliance,
   getWeightConfig,
   getTermsAcceptanceStatus,
-  getUserLoans,generateProcessToken,saveProcessToken
+  getUserLoans,
+  generateProcessToken,
+  saveProcessToken,
 } from "../API/apiServices";
 import Swal from "sweetalert2";
 import Loader from "./Loader";
@@ -56,9 +58,10 @@ const ApplyForLoan = () => {
   const [additionalFees, setAdditionalFees] = useState(null);
   const [feeDescription, setFeeDescription] = useState(null);
   const [eligibilityCheckLoading, setEligibilityCheckLoading] = useState(false);
-  const [accountId,setAccountId]=useState(null);
-  const [ accessToken,setAccessToken]=useState(null);
-const [isTokenForDisbursementLoading,setIsTokenForDisbursementLoading]= useState(false);
+  const [accountId, setAccountId] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
+  const [isTokenForDisbursementLoading, setIsTokenForDisbursementLoading] =
+    useState(false);
   const [errors, setErrors] = useState({
     loanAmount: "",
     repaymentTerm: "",
@@ -290,7 +293,7 @@ const [isTokenForDisbursementLoading,setIsTokenForDisbursementLoading]= useState
   // Handle Institution and Account change within one dropdown
   const handleSelectionChange = (value, type) => {
     const [institutionId, accountId] = value.split("-"); // Split to get institution and account IDs
-     const selectedInstitution = accountData?.find(
+    const selectedInstitution = accountData?.find(
       (inst) => inst.institution_id === institutionId
     );
     if (!selectedInstitution) return; // Safety check
@@ -298,17 +301,13 @@ const [isTokenForDisbursementLoading,setIsTokenForDisbursementLoading]= useState
     const selectedAccount = selectedInstitution.accounts.find(
       (acc) => acc.accountId === accountId
     );
-const accessToken = selectedInstitution?.accessToken;
-  if (!accessToken || !accountId) {
-    console.error("Missing access token or account ID");
-    return;
-  }
-  setAccessToken(accessToken);
-  setAccountId(accountId);
-
- 
-
-   
+    const accessToken = selectedInstitution?.accessToken;
+    if (!accessToken || !accountId) {
+      console.error("Missing access token or account ID");
+      return;
+    }
+    setAccessToken(accessToken);
+    setAccountId(accountId);
 
     if (type === "from") {
       setSelectedInstitutionFrom(selectedInstitution);
@@ -321,7 +320,6 @@ const accessToken = selectedInstitution?.accessToken;
 
   // Helper function to generate dropdown options for accounts
   const generateDropdownOptions = (institution) => {
-  
     return institution.accounts.map((account) => (
       <option
         key={`${institution.institution_id}-${account.accountId}`}
@@ -361,154 +359,159 @@ const accessToken = selectedInstitution?.accessToken;
   };
 
   // Handle form submission
- const handleSubmit = async () => {
-  if (!termsAccepted) {
-    toast.info(
-      <span>
-        Please accept the{" "}
-        <a href="/terms-conditions" className="text-blue-500 underline">
-          Terms and Conditions
-        </a>{" "}
-        before applying for the loan.
-      </span>
-    );
-    return;
-  }
-
-  if (!validateForm()) {
-    return;
-  }
-
-  const token = localStorage.getItem("userToken");
-  if (!token) {
-    Swal.fire({
-      text: "You need to be logged in to apply for a loan.",
-      icon: "warning",
-      timer: 2000,
-      showConfirmButton: false,
-    });
-    return;
-  }
-
-  const userId = localStorage.getItem("user_id");
-  let processToken;
-
-  try {
-    setIsTokenForDisbursementLoading(true);
-    processToken = await generateProcessToken(accountId, accessToken);
-    console.log("Process token generated:", processToken);
-
-    if (!processToken) {
-      throw new Error("No process token returned");
-    }
-  } catch (err) {
-    console.error("Error generating process token:", err.message);
-    let userFriendlyMsg = err.message;
-
-if (err.message.includes("account_id specified does not belong to a depository account")) {
-  userFriendlyMsg = "Please select a valid depository account for disbursement.";
-}
-
-toast.error(userFriendlyMsg);
-    setIsTokenForDisbursementLoading(false);
-    return; // Stop execution here
-  }
-
-  try {
-    await saveProcessToken(processToken, userId);
-    console.log("Process token saved successfully");
-  } catch (saveError) {
-    console.error("Failed to save process token:", saveError.message);
-    toast.error(`${saveError.message}`);
-    setIsTokenForDisbursementLoading(false);
-    return; // Stop execution here
-  } finally {
-    setIsTokenForDisbursementLoading(false);
-  }
-
-  // If we reached here, both tokens are successfully handled
-  try {
-    setLoading(true);
-
-    const fullStateName = stateCodeToName[state.toUpperCase()];
-    if (!fullStateName) {
-      throw new Error("Invalid state code");
-    }
-
-    if (eligibilityErr?.message) {
-      toast?.error(eligibilityErr?.message);
-      setLoading(false);
+  const handleSubmit = async () => {
+    if (!termsAccepted) {
+      toast.info(
+        <span>
+          Please accept the{" "}
+          <a href="/terms-conditions" className="text-blue-500 underline">
+            Terms and Conditions
+          </a>{" "}
+          before applying for the loan.
+        </span>
+      );
       return;
     }
 
-    const totalAmount =
-      additionalFees !== null && additionalFees !== undefined
-        ? Number(loanAmount) + Number(additionalFees)
-        : Number(loanAmount);
+    if (!validateForm()) {
+      return;
+    }
 
-    const response = await fetch(`${BASE_URL}/loans/apply`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        amount: totalAmount,
-        fee: additionalFees ?? null,
-        repaymentTerm,
-        account: accountNumber,
-        interest: adjustedInterestRate || rateResult,
-        loanrequested: true,
-        riskLevel: averageRiskLevel,
-        riskScore,
-        additionalFees,
-        feeDescription,
-        fromAccount: {
-          institutionId: selectedInstitutionFrom.institution_id,
-          institutionName: selectedInstitutionFrom.institution_name,
-          accountId: selectedFromAccount.accountId,
-          accountName: selectedFromAccount.name,
-          accountNumber: selectedFromAccount.mask,
-          accountType: selectedFromAccount.type,
-          accountSubtype: selectedFromAccount.subtype,
-        },
-        lastLoginAt,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
+    const token = localStorage.getItem("userToken");
+    if (!token) {
       Swal.fire({
-        text: "Loan application submitted!",
-        icon: "success",
+        text: "You need to be logged in to apply for a loan.",
+        icon: "warning",
         timer: 2000,
         showConfirmButton: false,
       });
-      localStorage.setItem("loanId", result?.loanApplication?.id);
-      navigate("/loanconfirmation", {
-        state: { loanId: result?.loanApplication?.id },
+      return;
+    }
+
+    const userId = localStorage.getItem("user_id");
+    let processToken;
+
+    try {
+      setIsTokenForDisbursementLoading(true);
+      processToken = await generateProcessToken(accountId, accessToken);
+      console.log("Process token generated:", processToken);
+
+      if (!processToken) {
+        throw new Error("No process token returned");
+      }
+    } catch (err) {
+  console.log("err----------", err);
+  console.error("Error generating process token:", err.message);
+
+  let userFriendlyMsg = err.message;
+
+  if (
+    err.message.includes("account_id specified does not belong to a depository account") ||
+    err.message.includes("Failed to generate token: one or more of the account IDs is invalid")
+  ) {
+    userFriendlyMsg =
+      "Disbursement is only supported for checking or savings accounts. Please select a valid account.";
+  }
+      toast.error(userFriendlyMsg);
+      setIsTokenForDisbursementLoading(false);
+      return; // Stop execution here
+    }
+
+    try {
+      await saveProcessToken(processToken, userId);
+      console.log("Process token saved successfully");
+    } catch (saveError) {
+      console.error("Failed to save process token:", saveError.message);
+      toast.error(`${saveError.message}`);
+      setIsTokenForDisbursementLoading(false);
+      return; // Stop execution here
+    } finally {
+      setIsTokenForDisbursementLoading(false);
+    }
+
+    // If we reached here, both tokens are successfully handled
+    try {
+      setLoading(true);
+
+      const fullStateName = stateCodeToName[state.toUpperCase()];
+      if (!fullStateName) {
+        throw new Error("Invalid state code");
+      }
+
+      if (eligibilityErr?.message) {
+        toast?.error(eligibilityErr?.message);
+        setLoading(false);
+        return;
+      }
+
+      const totalAmount =
+        additionalFees !== null && additionalFees !== undefined
+          ? Number(loanAmount) + Number(additionalFees)
+          : Number(loanAmount);
+
+      const response = await fetch(`${BASE_URL}/loans/apply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          amount: totalAmount,
+          fee: additionalFees ?? null,
+          repaymentTerm,
+          account: accountNumber,
+          interest: adjustedInterestRate || rateResult,
+          loanrequested: true,
+          riskLevel: averageRiskLevel,
+          riskScore,
+          additionalFees,
+          feeDescription,
+          fromAccount: {
+            institutionId: selectedInstitutionFrom.institution_id,
+            institutionName: selectedInstitutionFrom.institution_name,
+            accountId: selectedFromAccount.accountId,
+            accountName: selectedFromAccount.name,
+            accountNumber: selectedFromAccount.mask,
+            accountType: selectedFromAccount.type,
+            accountSubtype: selectedFromAccount.subtype,
+          },
+          lastLoginAt,
+        }),
       });
-    } else {
+
+      const result = await response.json();
+
+      if (result.success) {
+        Swal.fire({
+          text: "Loan application submitted!",
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false,
+        });
+        localStorage.setItem("loanId", result?.loanApplication?.id);
+        navigate("/loanconfirmation", {
+          state: { loanId: result?.loanApplication?.id },
+        });
+      } else {
+        Swal.fire({
+          text: result.message || "Failed to submit loan application.",
+          icon: "error",
+          timer: 3000,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
       Swal.fire({
-        text: result.message || "Failed to submit loan application.",
+        text: "An error occurred while processing your request.",
         icon: "error",
         timer: 3000,
         showConfirmButton: false,
       });
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error:", error);
-    Swal.fire({
-      text: "An error occurred while processing your request.",
-      icon: "error",
-      timer: 3000,
-      showConfirmButton: false,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   if (loading || isLoadings) {
     return <Loader />;
@@ -766,12 +769,15 @@ toast.error(userFriendlyMsg);
                 : "bg-[#5EB66E] text-white hover:bg-[#469F5E] focus:ring-[#5EB66E]" // Enabled state
             }`}
           >
-          {isTokenForDisbursementLoading || eligibilityCheckLoading ?
-<><div className="flex justify-center">
-  <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
-</div>
-</>
- : "Apply for Loan"}  
+            {isTokenForDisbursementLoading || eligibilityCheckLoading ? (
+              <>
+                <div className="flex justify-center">
+                  <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
+                </div>
+              </>
+            ) : (
+              "Apply for Loan"
+            )}
           </button>
         </div>
       </div>

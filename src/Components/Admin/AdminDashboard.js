@@ -49,8 +49,6 @@ const AdminDashboard = () => {
     fetchProfileData();
   }, []);
 
-  console.log("users..", users);
-
   const fetchUsers = async (page) => {
     setLoading(true);
     try {
@@ -81,7 +79,6 @@ const AdminDashboard = () => {
       );
 
       const data = await response.json();
-      console.log("data...", data);
       if (data.success) {
         setUsers(data.users);
         setTotalPages(data.totalPages);
@@ -393,7 +390,7 @@ const AdminDashboard = () => {
         const summary = plaid.kyc_details?.summary || {};
         const behavior = plaid.anti_fraud_details?.behavior || {};
 
-        // ✅ Table 1: Plaid IDV & KYC Information
+        // Table 1: Plaid IDV & KYC Information
         const kycData = [
           ["Plaid IDV Status", plaid.plaid_idv_status || "N/A"],
           ["KYC Status", plaid.kyc_status || "N/A"],
@@ -404,7 +401,7 @@ const AdminDashboard = () => {
           ["Phone Number Match", summary.phone_number || "N/A"],
         ];
 
-        // ✅ Table 2: Anti-Fraud Information
+        // Table 2: Anti-Fraud Information
         const antiFraudData = [
           ["Anti-Fraud Status", plaid.anti_fraud_status || "N/A"],
           ["User Interactions", behavior.user_interactions || "N/A"],
@@ -412,14 +409,14 @@ const AdminDashboard = () => {
           ["Bot Detected", behavior.bot_detected || "N/A"],
         ];
 
-        // ✅ Define Column Positions
+        //  Define Column Positions
         const leftTableX = 15; // Left column for KYC
         const rightTableX = 110; // Right column for Anti-Fraud
 
-        // ✅ Ensure enough space between tables
+        // Ensure enough space between tables
         const tableWidth = 80; // Fixed width to prevent overlap
 
-        // 🟢 **Render Left Table (KYC)**
+        // **Render Left Table (KYC)**
         doc.setFontSize(10);
         doc.setTextColor("#000000");
         doc.text("Plaid IDV & KYC Information:", leftTableX, yPosition + 15);
@@ -627,7 +624,7 @@ const AdminDashboard = () => {
       matchesRepaymentFilter &&
       matchesInstitutionName &&
       matchesAccountFilter &&
-      matchesOverdueStatus // ✅ Ensured this works properly now
+      matchesOverdueStatus //  Ensured this works properly now
     );
   });
 
@@ -727,37 +724,39 @@ const AdminDashboard = () => {
               <h2 className="text-left text-xl md:text-[24px] font-bold font-sans">
                 User Management
               </h2>
+              {(filteredUsers.length > 0) &
+              (
+                <div className="mr-3 flex items-center justify-end sm:justify-center w-auto">
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="relative p-1 bg-gray-200 rounded-full"
+                  >
+                    <CiMenuKebab size={30} />
+                  </button>
 
+                  {/* Dropdown Menu */}
+                  {dropdownOpen && (
+                    <div className="absolute right-5 top-10 md:mt-[8rem] mt-[4rem] md:w-[160px] w-[60vw] bg-white border rounded shadow-lg z-10">
+                      <button
+                        onClick={downloadPDF}
+                        className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
+                      >
+                        Export PDF
+                      </button>
+                      <button
+                        onClick={downloadCSV}
+                        className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
+                      >
+                        Export CSV
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Button Section */}
-              <div className="mr-3 flex items-center justify-end sm:justify-center w-auto">
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="relative p-1 bg-gray-200 rounded-full"
-                >
-                  <CiMenuKebab size={30} />
-                </button>
-
-                {/* Dropdown Menu */}
-                {dropdownOpen && (
-                  <div className="absolute right-5 top-10 md:mt-[8rem] mt-[4rem] md:w-[160px] w-[60vw] bg-white border rounded shadow-lg z-10">
-                    <button
-                      onClick={downloadPDF}
-                      className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
-                    >
-                      Export PDF
-                    </button>
-                    <button
-                      onClick={downloadCSV}
-                      className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
-                    >
-                      Export CSV
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
 
-            {applyFilter && (
+            {applyFilter && filteredUsers.length > 0 && (
               <div
                 ref={sectionRef}
                 className={`transition-all duration-500 ease-in-out overflow-hidden transform ${
@@ -971,9 +970,22 @@ const AdminDashboard = () => {
             >
               {!loading && applyFilter ? (
                 filteredUsers.length === 0 ? (
-                  <div>
-                    <p className="text-center text-gray-500 text-lg">
-                      No users found.
+                  <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                    <svg
+                      className="w-14 h-14 mb-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V13a6.002 6.002 0 00-5-5.917V7a3 3 0 10-6 0v.083A6.002 6.002 0 002 13v1.158c0 .538-.214 1.055-.595 1.437L0 17h5m10 0v1a3 3 0 11-6 0v-1m6 0H9"
+                      />
+                    </svg>
+                    <p className="text-lg font-semibold text-gray-600">
+                      No users found
                     </p>
                   </div>
                 ) : null
@@ -984,7 +996,7 @@ const AdminDashboard = () => {
               ) : null}
             </div>
 
-            {applyFilter ? (
+            {applyFilter && filteredUsers.length > 0 ? (
               <div className="flex items-center justify-center mt-6 space-x-4">
                 <button
                   onClick={() =>
@@ -1025,35 +1037,7 @@ const AdminDashboard = () => {
                   Next
                 </button>
               </div>
-            ) : (
-              <div className="flex items-center justify-center mt-6 space-x-4">
-                <button
-                  onClick={() => setPage(page - 1)}
-                  disabled={page === 1}
-                  className={`px-4 py-2 text-lg rounded-md transition ${
-                    page === 1
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-[#5EB66E] text-white hover:bg-green-600"
-                  }`}
-                >
-                  Previous
-                </button>
-                <span className="text-lg text-gray-600">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage(page + 1)}
-                  disabled={page === totalPages}
-                  className={`px-4 py-2 text-lg rounded-md transition ${
-                    page === totalPages
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-[#5EB66E] text-white hover:bg-green-600"
-                  }`}
-                >
-                  Next
-                </button>
-              </div>
-            )}
+            ) : null}
           </div>
         )}
       </div>

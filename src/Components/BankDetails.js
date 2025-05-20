@@ -122,6 +122,24 @@ const UserBankDetails = () => {
       fetchProfileData();
     }
   }, [profileData]);
+const handleContinue = () => {
+  // Define which subtypes are allowed for disbursement
+  const allowedSubtypes = ["checking", "savings"];
+
+  // Check if any account in any institution is a depository with allowed subtype
+  const hasAllowedDepository = accountData.some(institution =>
+    institution.accounts.some(account =>
+      account.type === "depository" && allowedSubtypes.includes(account.subtype)
+    )
+  );
+
+  if (!hasAllowedDepository) {
+    toast.error("To disburse the amount, please add a valid checking or savings account.");
+  } else {
+    navigate("/socialaccount");
+  }
+};
+
 
   useEffect(() => {
     const token = getAuthToken();
@@ -242,6 +260,7 @@ const UserBankDetails = () => {
       }
     });
   };
+  console.log("accountData",accountData);
   
   return (
     <>
@@ -403,7 +422,7 @@ const UserBankDetails = () => {
           {accountData && accountData.length > 0 && (
             <div className="p-6">
               <button
-                onClick={() => navigate('/socialaccount')}
+                onClick={handleContinue}
                 disabled={loading || !linkToken}
                 className={`w-full py-3 text-lg font-bold rounded-lg shadow-lg ${
                   loading || !linkToken ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-[#5EB66E] text-white"

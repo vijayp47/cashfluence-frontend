@@ -65,10 +65,19 @@ const TransactionHistory = () => {
               <Loader />
           
           ) : error ? (
-            <div className="flex items-center justify-center min-h-[630px]">
-            <p className="text-red-500 text-center">{error}</p>
-          </div>
+         
           
+<div className="flex items-center justify-center min-h-[630px] bg-white px-4">
+  <div className="text-center space-y-4">
+    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+      <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01m-6.938 4h13.856c1.054 0 1.918-.816 1.994-1.85L21 18V6a2 2 0 00-1.85-1.994L19 4H5a2 2 0 00-1.994 1.85L3 6v12a2 2 0 001.85 1.994L5 20z" />
+      </svg>
+    </div>
+    <h2 className="text-xl font-semibold text-gray-800">No Loans Found</h2>
+    <p className="text-gray-600">{error}</p>
+  </div>
+</div>
 
           
           ) : (

@@ -80,9 +80,9 @@ if (data && (data?.subscriber_count || data?.follower_count)) {
 
   const renderAccountData = (platform) => {
     const data = influencerProfile[`${platform.toLowerCase()}_data`];
-    if (!data || (Array.isArray(data) && data.length === 0)) {
-      return <p className="text-center">No data available for {platform}</p>;
-    }
+    // if (!data || (Array.isArray(data) && data.length === 0)) {
+    //   return <p className="text-center">No data available for {platform}</p>;
+    // }
 
     return (
       <div className="font-sans bg-white p-5 rounded-lg shadow border text-left border-[#C4C4C4] mt-4">

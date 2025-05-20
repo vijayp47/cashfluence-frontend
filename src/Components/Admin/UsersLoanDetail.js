@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+
 import { useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
@@ -14,6 +17,7 @@ const UsersLoanDetail = ({
   onUpdateStatus,
 }) => {
   const location = useLocation();
+    const navigate = useNavigate();
     const BASE_URL = process.env.REACT_APP_BASE_URL;
   const [transactionId, setTransactionId] = useState("");
   const [approvalDate] = useState(new Date().toLocaleDateString());
@@ -223,7 +227,8 @@ const handleStatusChange = async (loanId, status) => {
           ip_address: user?.ipAddress || "127.0.0.1",
           plaid_token: processToken,
         
-          amount: parseInt(selectedLoan?.amount, 10),
+        amount: parseInt(selectedLoan?.amount, 10) * 100,
+
           description: "Loan disbursement",
           payment_date: approvalDate,
           external_id: `loan_${loanId}`,
@@ -276,10 +281,15 @@ const handleStatusChange = async (loanId, status) => {
           onUpdateStatus(loanId, "Approved");
           Swal.fire({
             title: `${status}!`,
-            text: `The loan has been ${status.toLowerCase()}ed successfully.`,
-            icon: "success",
-            confirmButtonText: "Ok",
-          });
+            text: `The loan has been ${status.toLowerCase()}ed successfully.You will be redirected to the dashboard.`,
+  icon: "success",
+  confirmButtonText: "Ok",
+  timer: 3000,
+  timerProgressBar: true,
+}).then(() => {
+  navigate("/admin/dashboard");
+});
+           
         } catch (error) {
           Swal.fire({
             title: "Error!",
@@ -321,12 +331,18 @@ const handleStatusChange = async (loanId, status) => {
             userEmail: user?.email,
           });
           onUpdateStatus(loanId, "Rejected");
-          Swal.fire({
-            title: `${status}!`,
-            text: `The loan has been ${status.toLowerCase()}ed.`,
-            icon: "success",
-            confirmButtonText: "Ok",
-          });
+         Swal.fire({
+  title: `${status}!`,
+  text: `The loan has been ${status.toLowerCase()}ed. You will be redirected to the dashboard.`,
+  icon: "success",
+  confirmButtonText: "Ok",
+  timer: 3000,
+  timerProgressBar: true,
+}).then(() => {
+  navigate("/admin/dashboard");
+});
+
+  
         } catch (error) {
           Swal.fire({
             title: "Error!",
